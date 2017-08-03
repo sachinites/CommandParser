@@ -1,0 +1,71 @@
+/*
+ * =====================================================================================
+ *
+ *       Filename:  string_util.c
+ *
+ *    Description:  String utilities
+ *
+ *        Version:  1.0
+ *        Created:  Thursday 03 August 2017 05:35:37  IST
+ *       Revision:  1.0
+ *       Compiler:  gcc
+ *
+ *         Author:  Er. Abhishek Sagar, Networking Developer (AS), sachinites@gmail.com
+ *        Company:  Brocade Communications(Jul 2012- Mar 2016), Current : Juniper Networks(Apr 2017 - Present)
+ *
+ * =====================================================================================
+ */
+
+#include "string_util.h"
+#include <stdlib.h>
+#include <assert.h>
+
+char** str_split(char* a_str, const char a_delim, size_t *token_cnt)
+{
+    char** result    = 0;
+    size_t count     = 0;
+    char* tmp        = a_str;
+    char* last_comma = 0;
+    char delim[2];
+    delim[0] = a_delim;
+    delim[1] = 0;
+
+    /* Count how many elements will be extracted. */
+    while (*tmp)
+    {
+        if (a_delim == *tmp)
+        {
+            count++;
+            last_comma = tmp;
+        }
+        tmp++;
+    }
+
+    /* Add space for trailing token. */
+    count += last_comma < (a_str + strlen(a_str) - 1);
+
+    /* Add space for terminating null string so caller
+     *      *        knows where the list of returned strings ends. */
+    count++;
+
+    result = malloc(sizeof(char*) * count);
+
+    if (result)
+    {
+        size_t idx  = 0;
+        char* token = strtok(a_str, delim);
+
+        while (token)
+        {
+            assert(idx < count);
+            *(result + idx++) = strdup(token);
+            token = strtok(0, delim);
+        }
+        assert(idx == count - 1);
+        *(result + idx) = 0;
+    }
+
+    *token_cnt = count -1;
+    return result;
+}
+
