@@ -24,4 +24,6 @@ char** str_split(char* a_str,
                  const char a_delim, 
                  size_t *token_cnt);
 
+void
+free_tokens(char **tokens);
 #endif

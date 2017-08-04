@@ -34,6 +34,15 @@ place_console(){
 
 static char cons_input_buffer[2048];
 
+typedef enum{
+    COMPLETE,
+    ERROR,
+    INVALID_LEAF,
+    CMD_NOT_FOUND,
+    QUESTION_MARK,
+    UNKNOWN
+} CMD_PARSE_STATUS;
+
 #if 1
 static param_t*
 find_matching_param(param_t **options, const char *cmd_name){
@@ -64,40 +73,122 @@ find_matching_param(param_t **options, const char *cmd_name){
 
 static int
 build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param){ 
-#if 1
-    param_t *param = &root;
-    int i = 0;
     
+    int i = 0;
+    param_t *param = &root;
+    param_t *parent = NULL;
+    CMD_PARSE_STATUS status = COMPLETE;
+     
     for(; i < token_cnt; i++){
+        parent = param;
         param = find_matching_param(get_child_array_ptr(param), *(tokens +i));
         if(param){
             if(IS_PARAM_LEAF(param)){
                 printf("token[%d] = %s Not found in cmd tree, leaf = %s\n", i, *(tokens +i), GET_LEAF_TYPE_STR(param));
-                continue;
+               
+                /*If it is a leaf, collect the leaf value and continue to parse*/ 
+                if(leaf_handler_array[GET_LEAF_TYPE(param)](GET_PARAM_LEAF(param), *(tokens +i)) == 0){
+                   continue; 
+                }
+                /*If leaf is not a valid value, terminate the command parsing immediately*/
+                status = INVALID_LEAF;
+                break;
             }
             else{
                 printf("token[%d] = %s found in cmd tree\n", i, *(tokens +i));
                 continue;
             }
         }
+
+        status = CMD_NOT_FOUND;
+        if(strncmp(*(tokens +i), "?", 1) == 0)
+            status = QUESTION_MARK;
+
         break;
     }
 
-    if(!param){
-        printf("Token not registered : %s\n", *(tokens +i));
+    switch(status){
+        case QUESTION_MARK:
+            /*print all childs of parent*/
+            {
+                i = 0;
+                cmd_t *cmd = NULL;
+                leaf_t *leaf = NULL;
+
+                if(IS_PARAM_CMD(parent))
+                    cmd = GET_PARAM_CMD(parent);
+                else
+                    leaf = GET_PARAM_LEAF(parent);
+                
+                printf("\n");            
+                if(cmd){
+                    for(; i < MAX_OPTION_SIZE; i++){
+                        if(cmd->options[i]){
+                            if(IS_PARAM_CMD(cmd->options[i])){
+                                printf("nxt cmd -> %s\n", GET_CMD_NAME(cmd->options[i]));
+                                continue;
+                            }
+                            printf("nxt leaf -> %s\n", GET_LEAF_TYPE_STR(cmd->options[i]));
+                            continue;
+                        }
+                        break;
+                    }
+                }
+                else{
+                    for(; i < MAX_OPTION_SIZE; i++){
+                        if(leaf->options[i]){
+                            if(IS_PARAM_CMD(leaf->options[i])){
+                                printf("nxt cmd -> %s\n", GET_CMD_NAME(leaf->options[i]));
+                                continue;
+                            }
+                            printf("nxt leaf -> %s\n", GET_LEAF_TYPE_STR(leaf->options[i]));
+                            continue;
+                        }
+                        break;
+                    }
+
+                }
+            } 
+            return -1;
+        case CMD_NOT_FOUND:
+            printf("Following Token not registered : %s\n", *(tokens +i));
+            return -1;
+        case INVALID_LEAF:
+            printf("Following leaf value could not be validated : %s, Expected Data type = %s\n", 
+                            *(tokens +i), GET_LEAF_TYPE_STR(param));
+            return -1;
+        case COMPLETE:
+            printf("Success Parse. Invoking callback Handler of the command\n");
+            if(IS_PARAM_CMD(param)){
+                if(param->cmd_type.cmd->callback){
+                    param->cmd_type.cmd->callback(NULL);
+                }
+                else{
+                    printf("Callback not registered with Command\n");
+                }
+            }
+            else{
+                if(param->cmd_type.leaf->callback){
+                    param->cmd_type.leaf->callback(NULL);
+                }
+                else{
+                    printf("Callback not registered with leaf\n");
+                }
+            }
+            break;
+        default:
+            printf("Unknown case fall\n");
     }
-#endif
     return 0;
 }
 
 static void
 parse_input_cmd(char *input, unsigned int len){
     
-        printf("input -- > %d : %s", len, cons_input_buffer);
         place_console();
 
         int i = 0, tok_no = 0;
-        char** tokens;
+        char** tokens = NULL;
         param_t *param = NULL;
         size_t token_cnt = 0;
 
@@ -107,16 +198,11 @@ parse_input_cmd(char *input, unsigned int len){
 
         /*Walk the cmd tree now and build the TLV buffer of leavf values, if any*/
 
-        build_tlv_buffer(tokens, token_cnt, &param);
-
-        i = 0;
-        printf("No of token = %d\n", token_cnt);
-        for ( ;*(tokens + i); i++)
-        {
-            printf("token=[%d] = %s\n", i, *(tokens + i));
-            free(*(tokens + i));
+        if(build_tlv_buffer(tokens, token_cnt, &param) < 0){
+            reset_serialize_buffer(tlv_buff);            
         }
-        free(tokens);
+
+        free_tokens(tokens);
 }
 
 
@@ -129,7 +215,13 @@ command_parser(void){
             printf("error in reading from stdin\n");
             exit(EXIT_SUCCESS);
         }
-       
+    
+        /*IF only enter is hit*/ 
+        if(strlen(cons_input_buffer) == 1){
+            cons_input_buffer[0]= '\0';
+            place_console();
+            continue; 
+        }
         cons_input_buffer[strlen(cons_input_buffer) - 1] = '\0'; 
         parse_input_cmd(cons_input_buffer, strlen(cons_input_buffer));
         memset(cons_input_buffer, 0, sizeof(cons_input_buffer));    

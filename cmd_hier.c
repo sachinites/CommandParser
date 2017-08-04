@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "serialize.h"
 
 
 #define TLV_MAX_BUFFER_SIZE 1048
@@ -34,7 +33,7 @@ static param_t*
 get_param_from_cmd(cmd_t *cmd){
     param_t *param = calloc(1, sizeof(param_t));
     param->param_type = CMD;
-    param->param.cmd = cmd;
+    param->cmd_type.cmd = cmd;
     return param;
 }
 
@@ -42,13 +41,48 @@ static param_t*
 get_param_from_leaf(leaf_t *leaf){
     param_t *param = calloc(1, sizeof(param_t));
     param->param_type = LEAF;
-    param->param.leaf = leaf;
+    param->cmd_type.leaf = leaf;
     return param;
 }
 
-static void*
-int_handler(void *arg){
-    return NULL;
+
+static int
+int_validation_handler(leaf_t *leaf, char *value_passed){
+    printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
+                            get_str_leaf_type(leaf->leaf_type), value_passed);
+    return 0;
+}
+
+
+static int
+string_validation_handler(leaf_t *leaf, char *value_passed){
+    printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
+                            get_str_leaf_type(leaf->leaf_type), value_passed);
+    return 0;
+}
+
+
+static int
+ipv4_validation_handler(leaf_t *leaf, char *value_passed){
+    printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
+                            get_str_leaf_type(leaf->leaf_type), value_passed);
+    return 0;
+}
+
+
+static int
+ipv6_validation_handler(leaf_t *leaf, char *value_passed){
+    printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
+                            get_str_leaf_type(leaf->leaf_type), value_passed);
+    return 0;
+}
+
+
+static int
+float_validation_handler(leaf_t *leaf, char *value_passed){
+    printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
+                            get_str_leaf_type(leaf->leaf_type), value_passed);
+    return 0;
 }
 
 char*
@@ -73,11 +107,20 @@ void
 init_libcli(){
     memset(&root, 0, sizeof(param_t));
     root.param_type = CMD;
-    root.param.cmd = calloc(1, sizeof(cmd_t));
-    strncpy(root.param.cmd->cmd_name, "ROOT", CMD_NAME_SIZE-1);
-    root.param.cmd->cmd_name[CMD_NAME_SIZE-1] = '\0';
-    leaf_handler_array[INT] = int_handler;
+    root.cmd_type.cmd = calloc(1, sizeof(cmd_t));
+    strncpy(root.cmd_type.cmd->cmd_name, "ROOT", CMD_NAME_SIZE-1);
+    root.cmd_type.cmd->cmd_name[CMD_NAME_SIZE-1] = '\0';
+
+    /*Leavf Validation callbacks registration*/
+    leaf_handler_array[INT]     = int_validation_handler;
+    leaf_handler_array[STRING]  = string_validation_handler;
+    leaf_handler_array[IPV4]    = ipv4_validation_handler;
+    leaf_handler_array[IPV6]    = ipv6_validation_handler;
+    leaf_handler_array[FLOAT]   = float_validation_handler;
+
+    /*Intialised serialized buffer to collect leaf values in TLV format*/
     init_serialized_buffer_of_defined_size(&tlv_buff, TLV_MAX_BUFFER_SIZE);
+
 }
 
 void
@@ -85,7 +128,7 @@ static_register_command_after_command(cmd_t *parent, cmd_t *child){
     
     int i = 0;
     if(!parent)
-        parent = root.param.cmd;
+        parent = root.cmd_type.cmd;
 
     for(; i < MAX_OPTION_SIZE; i++){
         if(parent->options[i])
@@ -115,7 +158,22 @@ static_register_leaf_after_command(cmd_t *parent, leaf_t *child){
 
 }
 
+void
+static_register_command_after_leaf(leaf_t *parent, cmd_t *child){
 
+    int i = 0;
+    assert(parent);
+
+    for(; i < MAX_OPTION_SIZE; i++){
+        if(parent->options[i])
+            continue;
+
+        parent->options[i] = get_param_from_cmd(child);
+        return;
+    }
+
+    printf("%s() : Error : No space for new command : \n", __FUNCTION__);
+}
 
 cmd_t*
 dynamic_register_command_after_command(cmd_t *parent, 
@@ -126,7 +184,7 @@ dynamic_register_command_after_command(cmd_t *parent,
     cmd_t *child = NULL;
 
     if(!parent)
-        parent = root.param.cmd;
+        parent = root.cmd_type.cmd;
 
     for(; i < MAX_OPTION_SIZE; i++){
         if(parent->options[i])
@@ -187,12 +245,12 @@ _dump_one_cmd(param_t *param, unsigned short tabs){
     leaf_t *leaf = NULL;
 
     PRINT_TABS(tabs);
-    if(IS_PARAM_CMD(param)){
+
+    if(IS_PARAM_CMD(param))
         printf("-->%s", GET_PARAM_CMD(param)->cmd_name);
-    }
-    else{
+    else
         printf("-->%s", GET_LEAF_TYPE_STR(param));
-    }
+
     if(IS_PARAM_CMD(param)){
         cmd = GET_PARAM_CMD(param);
         for(; i < MAX_OPTION_SIZE; i++){
@@ -229,54 +287,8 @@ dump_cmd_tree(){
 extern 
 void command_parser(void);
 
-int
-main(int argc, char **argv){
-    init_libcli();
-
-    /*Level 0*/
-    static cmd_t show = {"show", 0, NULL_OPTIONS};
-    static_register_command_after_command(0, &show);
-    
-    static cmd_t debug = {"debug", 0, NULL_OPTIONS};
-    static_register_command_after_command(0, &debug);
-
-
-    static cmd_t config = {"config", 0, NULL_OPTIONS};
-    static_register_command_after_command(0, &config);
-
-
-    /*Level 1*/
-    static cmd_t ip = {"ip", 0, NULL_OPTIONS};
-    static_register_command_after_command(&show, &ip);
-
-
-    static cmd_t ipv6 = {"ipv6", 0, NULL_OPTIONS};
-    static_register_command_after_command(&show, &ipv6);
-
-    /*Level 2*/
-    static cmd_t igmp = {"igmp", 0, NULL_OPTIONS};
-    static_register_command_after_command(&ip, &igmp);
-
-    cmd_t *show_ip_pim = dynamic_register_command_after_command(&ip, "pim", 0);
-
-    /*Level 3*/
-    static cmd_t groups = {"groups", 0, NULL_OPTIONS};
-    static_register_command_after_command(&igmp, &groups);
-
-    dynamic_register_command_after_command(&igmp, "statistics", 0);
-    cmd_t *show_ip_pim_groups = dynamic_register_command_after_command(show_ip_pim, "groups", 0);
-    cmd_t *show_ip_pim_mcache = dynamic_register_command_after_command(show_ip_pim, "mcache", 0);
-
-    /*Level 4*/
-    static cmd_t show_ip_igmp_groups_vlan = {"vlan", 0, NULL_OPTIONS};
-    static_register_command_after_command(&groups, &show_ip_igmp_groups_vlan);
-
-    /*Level 5*/
-    static leaf_t vlan_id = {INT, "10", 0, NULL_OPTIONS};
-    static_register_leaf_after_command(&show_ip_igmp_groups_vlan, &vlan_id);
-     
-    //dump_cmd_tree(); 
+void
+start_shell(void){
     command_parser();
-
-    return 0;
 }
+

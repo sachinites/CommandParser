@@ -69,3 +69,12 @@ char** str_split(char* a_str, const char a_delim, size_t *token_cnt)
     return result;
 }
 
+void
+free_tokens(char **tokens){
+    int i = 0;
+    for ( ;*(tokens + i); i++)
+    {
+        free(*(tokens + i));
+    }
+    free(tokens);
+}

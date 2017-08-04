@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-g -Wall
 INCLUDES=-I .
 TARGET:exe
-OBJ=cmd_hier.o parser.o serialize.o string_util.o
+OBJ=testapp.o cmd_hier.o parser.o serialize.o string_util.o
 exe:${OBJ}
 	${CC} ${CFLAGS} ${OBJ} -o exe 
 cmd_hier.o:cmd_hier.c
@@ -13,6 +13,8 @@ serialize.o:serialize.c
 	gcc -g -c ${INCLUDES} serialize.c -o serialize.o
 string_util.o:string_util.c
 	gcc -g -c ${INCLUDES} string_util.c -o string_util.o
+testapp.o:testapp.c
+	gcc -g -c ${INCLUDES} testapp.c -o testapp.o
 clean:
 	rm exe
 	rm *.o

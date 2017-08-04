@@ -29,7 +29,8 @@
 
 #define CMD_NAME_SIZE   64
 
-typedef void* (*cmd_callback)(void *arg);
+typedef struct serialized_buffer ser_buff_t;
+typedef int (*cmd_callback)(ser_buff_t *tlv_buf);
 
 typedef enum{
     INT,
@@ -40,7 +41,6 @@ typedef enum{
     LEAF_MAX
 } leaf_type_t;
 
-typedef void* (*leaf_type_handler)(void *arg);
 
 typedef struct _param_t_ param_t;
 
@@ -57,6 +57,8 @@ typedef struct leaf{
     param_t *options[MAX_OPTION_SIZE];
 } leaf_t;
 
+typedef int (*leaf_type_handler)(leaf_t *leaf, char *value_passed);
+
 typedef enum{
     CMD,
     LEAF
@@ -69,7 +71,7 @@ typedef union _param_t{
 
 struct _param_t_{
     param_type_t param_type;
-    _param_t param;
+    _param_t cmd_type;
 };
 
 void
@@ -103,28 +105,36 @@ get_str_leaf_type(leaf_type_t leaf_type);
 void
 dump_cmd_tree();
 
+void
+start_shell(void);
+
+
 #define MIN(a,b)    (a < b ? a : b)
 
-#define GET_PARAM_CMD(param)    (param->param.cmd)
-#define GET_PARAM_LEAF(param)   (param->param.leaf)
+#define GET_PARAM_CMD(param)    (param->cmd_type.cmd)
+#define GET_PARAM_LEAF(param)   (param->cmd_type.leaf)
 #define IS_PARAM_CMD(param)     (param->param_type == CMD)
 #define IS_PARAM_LEAF(param)    (param->param_type == LEAF)
 #define GET_LEAF_TYPE_STR(param)    (get_str_leaf_type(GET_PARAM_LEAF(param)->leaf_type))
+#define GET_LEAF_VALUE_PTR(param)   (GET_PARAM_LEAF(param)->value_holder)
+#define GET_LEAF_TYPE(param)        (GET_PARAM_LEAF(param)->leaf_type)
+#define GET_CMD_NAME(param) (GET_PARAM_CMD(param)->cmd_name)
+
 
 static inline int
 is_cmd_string_match(param_t *param, const char *str){
-    return (strncmp(param->param.cmd->cmd_name, 
+    return (strncmp(param->cmd_type.cmd->cmd_name, 
             str, 
-            MIN(strlen(param->param.cmd->cmd_name), strlen(str))));        
+            MIN(strlen(param->cmd_type.cmd->cmd_name), strlen(str))));        
 }
 
 static inline param_t **
 get_child_array_ptr(param_t *param){
     if(IS_PARAM_CMD(param)){
-        return &param->param.cmd->options[0];
+        return &param->cmd_type.cmd->options[0];
     }
     else{
-        return &param->param.leaf->options[0];
+        return &param->cmd_type.leaf->options[0];
     }
 }
 
