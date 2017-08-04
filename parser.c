@@ -19,17 +19,20 @@
 #include "cmd_hier.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include "serialize.h"
 #include "string_util.h"
 
 extern param_t root;
 extern leaf_type_handler leaf_handler_array[LEAF_MAX];
 extern ser_buff_t *tlv_buff;
+char console_name[32];
+
 
 static void
-place_console(){
-    printf("\nrouter> ");
+place_console(char new_line){
+    if(new_line)
+        printf("\n");
+    printf("%s> ", console_name);
 }
 
 static char cons_input_buffer[2048];
@@ -82,16 +85,23 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param){
      
     for(; i < token_cnt; i++){
         parent = param;
+        if(strncmp(*(tokens +i), "?", 1) == 0){
+            status = QUESTION_MARK;
+            break;
+        }
+
         param = find_matching_param(get_child_array_ptr(param), *(tokens +i));
         if(param){
             if(IS_PARAM_LEAF(param)){
-                printf("token[%d] = %s Not found in cmd tree, leaf = %s\n", 
-                        i, *(tokens +i), GET_LEAF_TYPE_STR(param));
+                /*printf("token[%d] = %s Not found in cmd tree, leaf = %s\n", 
+                        i, *(tokens +i), GET_LEAF_TYPE_STR(param));*/
 
                 /*If it is a leaf, collect the leaf value and continue to parse. Below function performs
                  * basic standard sanity checks on the leaf value input by the user */ 
+
                 if(INVOKE_LEAF_LIB_VALIDATION_CALLBACK(param, *(tokens +i)) ==0){
-                    /*Standard librray checks have passed, not call user validation function*/
+
+                    /*Standard librray checks have passed, now call user validation callback function*/
                     if(INVOKE_LEAF_USER_VALIDATION_CALLBACK(param, *(tokens +i)) == 0)
                         continue;
                     else{
@@ -105,15 +115,12 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param){
                 break;
             }
             else{
-                printf("token[%d] = %s found in cmd tree\n", i, *(tokens +i));
+                /*printf("token[%d] = %s found in cmd tree\n", i, *(tokens +i));*/
                 continue;
             }
         }
 
         status = CMD_NOT_FOUND;
-        if(strncmp(*(tokens +i), "?", 1) == 0)
-            status = QUESTION_MARK;
-
         break;
     }
 
@@ -130,15 +137,15 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param){
                 else
                     leaf = GET_PARAM_LEAF(parent);
                 
-                printf("\n");            
+                //printf("\n");            
                 if(cmd){
                     for(; i < MAX_OPTION_SIZE; i++){
                         if(cmd->options[i]){
                             if(IS_PARAM_CMD(cmd->options[i])){
-                                printf("nxt cmd -> %s\n", GET_CMD_NAME(cmd->options[i]));
+                                printf("nxt cmd -> %s   |   %s\n", GET_CMD_NAME(cmd->options[i]), GET_CMD_HELP_STRING(cmd->options[i]));
                                 continue;
                             }
-                            printf("nxt leaf -> %s\n", GET_LEAF_TYPE_STR(cmd->options[i]));
+                            printf("nxt leaf -> %s  |   %s\n", GET_LEAF_TYPE_STR(cmd->options[i]), GET_LEAF_HELP_STRING(cmd->options[i]));
                             continue;
                         }
                         break;
@@ -148,10 +155,10 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param){
                     for(; i < MAX_OPTION_SIZE; i++){
                         if(leaf->options[i]){
                             if(IS_PARAM_CMD(leaf->options[i])){
-                                printf("nxt cmd -> %s\n", GET_CMD_NAME(leaf->options[i]));
+                                printf("nxt cmd -> %s   |   %s\n", GET_CMD_NAME(leaf->options[i]), GET_CMD_HELP_STRING(leaf->options[i]));
                                 continue;
                             }
-                            printf("nxt leaf -> %s\n", GET_LEAF_TYPE_STR(leaf->options[i]));
+                            printf("nxt leaf -> %s  |   %s\n", GET_LEAF_TYPE_STR(leaf->options[i]), GET_LEAF_HELP_STRING(leaf->options[i]));
                             continue;
                         }
                         break;
@@ -161,21 +168,21 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param){
             } 
             return -1;
         case CMD_NOT_FOUND:
-            printf("Following Token not registered : %s\n", *(tokens +i));
+            printf("Error : Following Token not registered : %s\n", *(tokens +i));
             return -1;
         case INVALID_LEAF:
-            printf("Following leaf value could not be validated : %s, Expected Data type = %s\n", 
+            printf("Error : Following leaf value could not be validated : %s, Expected Data type = %s\n", 
                             *(tokens +i), GET_LEAF_TYPE_STR(param));
             return -1;
         case COMPLETE:
-            printf("Success Parse. Invoking callback Handler of the command\n");
+            printf("Parse Success.\n");
             INVOKE_APPLICATION_CALLBACK_HANDLER(param, NULL);
             break;
             case USER_INVALID_LEAF:
-                printf("User validation has failed\n");
+                printf("Error : User validation has failed\n");
                 return -1;
         default:
-            printf("Unknown case fall\n");
+            printf("FATAL : Unknown case fall\n");
     }
     return 0;
 }
@@ -183,8 +190,6 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param){
 static void
 parse_input_cmd(char *input, unsigned int len){
     
-        place_console();
-
         int i = 0, tok_no = 0;
         char** tokens = NULL;
         param_t *param = NULL;
@@ -207,7 +212,7 @@ parse_input_cmd(char *input, unsigned int len){
 void
 command_parser(void){
 
-    place_console();
+    place_console(1);
     while(1){
         if((fgets((char *)cons_input_buffer, sizeof(cons_input_buffer)-1, stdin) == NULL)){
             printf("error in reading from stdin\n");
@@ -217,13 +222,13 @@ command_parser(void){
         /*IF only enter is hit*/ 
         if(strlen(cons_input_buffer) == 1){
             cons_input_buffer[0]= '\0';
-            place_console();
+            place_console(0);
             continue; 
         }
         cons_input_buffer[strlen(cons_input_buffer) - 1] = '\0'; 
         parse_input_cmd(cons_input_buffer, strlen(cons_input_buffer));
         memset(cons_input_buffer, 0, sizeof(cons_input_buffer));    
-        place_console();
+        place_console(1);
     }
 }
 

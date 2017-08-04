@@ -121,6 +121,7 @@ init_libcli(){
     /*Intialised serialized buffer to collect leaf values in TLV format*/
     init_serialized_buffer_of_defined_size(&tlv_buff, TLV_MAX_BUFFER_SIZE);
 
+    set_console_name("router");
 }
 
 void
@@ -201,6 +202,23 @@ dynamic_register_command_after_command(cmd_t *parent,
     return NULL;
 }
 
+void
+static_register_leaf_after_leaf(leaf_t *parent, leaf_t *child){
+   
+   int i = 0;
+   assert(parent);
+   
+   for(; i < MAX_OPTION_SIZE; i++){
+       if(parent->options[i])
+           continue;
+           
+       parent->options[i] = get_param_from_leaf(child);
+       return; 
+   }
+
+   printf("%s() : Error : No space for new command : \n", __FUNCTION__);
+}
+    
 
 leaf_t *
 dynamic_register_leaf_after_command(cmd_t *parent, leaf_type_t leaf_type,
@@ -230,9 +248,11 @@ dynamic_register_leaf_after_command(cmd_t *parent, leaf_type_t leaf_type,
 }
 
 
+
 leaf_t *
 dynamic_register_leaf_after_leaf(leaf_t *parent, leaf_type_t leaf_type,
                                  const char *def_leaf_value, cmd_callback callback){
+
     return NULL;
 }
 
@@ -292,3 +312,10 @@ start_shell(void){
     command_parser();
 }
 
+extern char console_name[32];
+
+void
+set_console_name(const char *cons_name){
+    strncpy(console_name, cons_name, 31);
+    console_name[31] = '\0';    
+}
