@@ -38,6 +38,7 @@ typedef enum{
     COMPLETE,
     ERROR,
     INVALID_LEAF,
+    USER_INVALID_LEAF,
     CMD_NOT_FOUND,
     QUESTION_MARK,
     UNKNOWN
@@ -84,14 +85,23 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param){
         param = find_matching_param(get_child_array_ptr(param), *(tokens +i));
         if(param){
             if(IS_PARAM_LEAF(param)){
-                printf("token[%d] = %s Not found in cmd tree, leaf = %s\n", i, *(tokens +i), GET_LEAF_TYPE_STR(param));
-               
-                /*If it is a leaf, collect the leaf value and continue to parse*/ 
-                if(leaf_handler_array[GET_LEAF_TYPE(param)](GET_PARAM_LEAF(param), *(tokens +i)) == 0){
-                   continue; 
+                printf("token[%d] = %s Not found in cmd tree, leaf = %s\n", 
+                        i, *(tokens +i), GET_LEAF_TYPE_STR(param));
+
+                /*If it is a leaf, collect the leaf value and continue to parse. Below function performs
+                 * basic standard sanity checks on the leaf value input by the user */ 
+                if(INVOKE_LEAF_LIB_VALIDATION_CALLBACK(param, *(tokens +i)) ==0){
+                    /*Standard librray checks have passed, not call user validation function*/
+                    if(INVOKE_LEAF_USER_VALIDATION_CALLBACK(param, *(tokens +i)) == 0)
+                        continue;
+                    else{
+                        status = USER_INVALID_LEAF;
+                    }
                 }
-                /*If leaf is not a valid value, terminate the command parsing immediately*/
-                status = INVALID_LEAF;
+                else{
+                    /*If leaf is not a valid value, terminate the command parsing immediately*/
+                    status = INVALID_LEAF;
+                }
                 break;
             }
             else{
@@ -159,23 +169,11 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param){
             return -1;
         case COMPLETE:
             printf("Success Parse. Invoking callback Handler of the command\n");
-            if(IS_PARAM_CMD(param)){
-                if(param->cmd_type.cmd->callback){
-                    param->cmd_type.cmd->callback(NULL);
-                }
-                else{
-                    printf("Callback not registered with Command\n");
-                }
-            }
-            else{
-                if(param->cmd_type.leaf->callback){
-                    param->cmd_type.leaf->callback(NULL);
-                }
-                else{
-                    printf("Callback not registered with leaf\n");
-                }
-            }
+            INVOKE_APPLICATION_CALLBACK_HANDLER(param, NULL);
             break;
+            case USER_INVALID_LEAF:
+                printf("User validation has failed\n");
+                return -1;
         default:
             printf("Unknown case fall\n");
     }

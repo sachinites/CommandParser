@@ -31,6 +31,8 @@
 
 typedef struct serialized_buffer ser_buff_t;
 typedef int (*cmd_callback)(ser_buff_t *tlv_buf);
+typedef int (*user_validation_callback)(char *leaf_value);
+
 
 typedef enum{
     INT,
@@ -54,6 +56,7 @@ typedef struct leaf{
     leaf_type_t leaf_type;
     char value_holder[64];
     cmd_callback callback;
+    user_validation_callback user_validation_cb_fn;
     param_t *options[MAX_OPTION_SIZE];
 } leaf_t;
 
@@ -119,8 +122,17 @@ start_shell(void);
 #define GET_LEAF_VALUE_PTR(param)   (GET_PARAM_LEAF(param)->value_holder)
 #define GET_LEAF_TYPE(param)        (GET_PARAM_LEAF(param)->leaf_type)
 #define GET_CMD_NAME(param) (GET_PARAM_CMD(param)->cmd_name)
+#define INVOKE_LEAF_USER_VALIDATION_CALLBACK(param, arg) \
+                    (param->cmd_type.leaf->user_validation_cb_fn(arg))
+#define INVOKE_LEAF_LIB_VALIDATION_CALLBACK(param, arg) \
+                    (leaf_handler_array[GET_LEAF_TYPE(param)](GET_PARAM_LEAF(param), arg))
 
-
+#define INVOKE_APPLICATION_CALLBACK_HANDLER(param, arg)                    \
+    if(IS_PARAM_CMD(param) && param->cmd_type.cmd->callback)               \
+        param->cmd_type.cmd->callback(arg);                                \
+    else if(IS_PARAM_LEAF(param) && param->cmd_type.leaf->callback)        \
+        param->cmd_type.leaf->callback(arg); 
+                                      
 static inline int
 is_cmd_string_match(param_t *param, const char *str){
     return (strncmp(param->cmd_type.cmd->cmd_name, 

@@ -32,6 +32,19 @@ show_cmd_tree(ser_buff_t *tlv_buf){
     return 0;
 }
 
+int
+user_vlan_validation_callback(char *vlan_id){
+
+    printf("%s() is called ....\n", __FUNCTION__);
+    int vlan_no = atoi(vlan_id);
+
+    if(vlan_no > 0 && vlan_no < 4096)
+        return 0;
+
+    return -1;
+}
+
+
 
 int
 main(int argc, char **argv){
@@ -79,11 +92,13 @@ main(int argc, char **argv){
     static cmd_t show_ip_igmp_groups_vlan = {"vlan", show_ip_igmp_groups_handler, NULL_OPTIONS};
     static_register_command_after_command(&groups, &show_ip_igmp_groups_vlan);
 
-    static leaf_t group_ip = {IPV4, "0.0.0.0", show_ip_igmp_groups_handler, NULL_OPTIONS};
+    static leaf_t group_ip = {IPV4, "0.0.0.0", show_ip_igmp_groups_handler, 0, NULL_OPTIONS};
     static_register_leaf_after_command(&groups, &group_ip);
 
     /*Level 5*/
-    static leaf_t vlan_id = {INT, "10", show_ip_igmp_groups_handler, NULL_OPTIONS};
+    static leaf_t vlan_id = {INT, "10", show_ip_igmp_groups_handler, 
+                            user_vlan_validation_callback, NULL_OPTIONS};
+
     static_register_leaf_after_command(&show_ip_igmp_groups_vlan, &vlan_id);
 
     /*level 6*/
@@ -91,7 +106,9 @@ main(int argc, char **argv){
     static_register_command_after_leaf(&group_ip, &show_ip_igmp_groups_group_ip_vlan);
 
     /*level 7*/
-    static leaf_t show_ip_igmp_groups_group_ip_vlan_vlan_id = {INT, "10", show_ip_igmp_groups_handler, NULL_OPTIONS};
+    static leaf_t show_ip_igmp_groups_group_ip_vlan_vlan_id = {INT, "10", show_ip_igmp_groups_handler, 
+                                    user_vlan_validation_callback, NULL_OPTIONS};
+
     static_register_leaf_after_command(&show_ip_igmp_groups_group_ip_vlan, &show_ip_igmp_groups_group_ip_vlan_vlan_id);
 
     start_shell();
