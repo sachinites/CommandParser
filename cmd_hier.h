@@ -33,7 +33,7 @@
 
 #define CMD_NAME_SIZE           32
 #define LEAF_VALUE_HOLDER_SIZE  64
-#define LEAF_VALUE_ID_SIZE      32
+#define LEAF_ID_SIZE            32
 #define LEAF_HELP_STRING_SIZE   64
 #define CMD_HELP_STRING_SIZE    LEAF_HELP_STRING_SIZE
 
@@ -66,7 +66,7 @@ typedef struct leaf{
     char value_holder[LEAF_VALUE_HOLDER_SIZE];
     cmd_callback callback;
     user_validation_callback user_validation_cb_fn;
-    char leaf_id[LEAF_VALUE_ID_SIZE];/*Within a single command, it should be unique*/
+    char leaf_id[LEAF_ID_SIZE];/*Within a single command, it should be unique*/
     char help[LEAF_HELP_STRING_SIZE];
     param_t *options[MAX_OPTION_SIZE];
 } leaf_t;

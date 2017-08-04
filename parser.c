@@ -16,11 +16,11 @@
  * =====================================================================================
  */
 
-#include "cmd_hier.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "serialize.h"
 #include "string_util.h"
+#include "cmdtlv.h"
+
 
 extern param_t root;
 extern leaf_type_handler leaf_handler_array[LEAF_MAX];
@@ -75,6 +75,8 @@ find_matching_param(param_t **options, const char *cmd_name){
  *  if Failure, param is the pointer to the mismatch patch of the cmd tree
  *-----------------------------------------------------------------------------*/
 
+static tlv_struct_t tlv;
+
 static int
 build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param){ 
     
@@ -82,7 +84,8 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param){
     param_t *param = &root;
     param_t *parent = NULL;
     CMD_PARSE_STATUS status = COMPLETE;
-     
+    memset(&tlv, 0, sizeof(tlv_struct_t));
+         
     for(; i < token_cnt; i++){
         parent = param;
         if(strncmp(*(tokens +i), "?", 1) == 0){
@@ -102,8 +105,14 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param){
                 if(INVOKE_LEAF_LIB_VALIDATION_CALLBACK(param, *(tokens +i)) ==0){
 
                     /*Standard librray checks have passed, now call user validation callback function*/
-                    if(INVOKE_LEAF_USER_VALIDATION_CALLBACK(param, *(tokens +i)) == 0)
+                    if(INVOKE_LEAF_USER_VALIDATION_CALLBACK(param, *(tokens +i)) == 0){
+                        /*Now collect this leaf information into TLV*/
+                        prepare_tlv_from_leaf(GET_PARAM_LEAF(param), (&tlv));
+                        put_value_in_tlv((&tlv), *(tokens +i));
+                        collect_tlv(tlv_buff, &tlv);
+                        memset(&tlv, 0, sizeof(tlv_struct_t));
                         continue;
+                    }
                     else{
                         status = USER_INVALID_LEAF;
                     }
@@ -142,10 +151,10 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param){
                     for(; i < MAX_OPTION_SIZE; i++){
                         if(cmd->options[i]){
                             if(IS_PARAM_CMD(cmd->options[i])){
-                                printf("nxt cmd -> %s   |   %s\n", GET_CMD_NAME(cmd->options[i]), GET_CMD_HELP_STRING(cmd->options[i]));
+                                printf("nxt cmd  -> %-31s   |   %s\n", GET_CMD_NAME(cmd->options[i]), GET_CMD_HELP_STRING(cmd->options[i]));
                                 continue;
                             }
-                            printf("nxt leaf -> %s  |   %s\n", GET_LEAF_TYPE_STR(cmd->options[i]), GET_LEAF_HELP_STRING(cmd->options[i]));
+                            printf("nxt leaf -> %-32s  |   %s\n", GET_LEAF_TYPE_STR(cmd->options[i]), GET_LEAF_HELP_STRING(cmd->options[i]));
                             continue;
                         }
                         break;
@@ -155,10 +164,10 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param){
                     for(; i < MAX_OPTION_SIZE; i++){
                         if(leaf->options[i]){
                             if(IS_PARAM_CMD(leaf->options[i])){
-                                printf("nxt cmd -> %s   |   %s\n", GET_CMD_NAME(leaf->options[i]), GET_CMD_HELP_STRING(leaf->options[i]));
+                                printf("nxt cmd  -> %-31s   |   %s\n", GET_CMD_NAME(leaf->options[i]), GET_CMD_HELP_STRING(leaf->options[i]));
                                 continue;
                             }
-                            printf("nxt leaf -> %s  |   %s\n", GET_LEAF_TYPE_STR(leaf->options[i]), GET_LEAF_HELP_STRING(leaf->options[i]));
+                            printf("nxt leaf -> %-32s  |   %s\n", GET_LEAF_TYPE_STR(leaf->options[i]), GET_LEAF_HELP_STRING(leaf->options[i]));
                             continue;
                         }
                         break;
@@ -176,7 +185,7 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param){
             return -1;
         case COMPLETE:
             printf("Parse Success.\n");
-            INVOKE_APPLICATION_CALLBACK_HANDLER(param, NULL);
+            INVOKE_APPLICATION_CALLBACK_HANDLER(param, tlv_buff);
             break;
             case USER_INVALID_LEAF:
                 printf("Error : User validation has failed\n");
@@ -202,10 +211,12 @@ parse_input_cmd(char *input, unsigned int len){
         /*Walk the cmd tree now and build the TLV buffer of leavf values, if any*/
 
         if(build_tlv_buffer(tokens, token_cnt, &param) < 0){
-            reset_serialize_buffer(tlv_buff);            
+            //reset_serialize_buffer(tlv_buff);            
         }
 
         free_tokens(tokens);
+        reset_serialize_buffer(tlv_buff);
+
 }
 
 
@@ -227,7 +238,7 @@ command_parser(void){
         }
         cons_input_buffer[strlen(cons_input_buffer) - 1] = '\0'; 
         parse_input_cmd(cons_input_buffer, strlen(cons_input_buffer));
-        memset(cons_input_buffer, 0, sizeof(cons_input_buffer));    
+        memset(cons_input_buffer, 0, sizeof(cons_input_buffer));
         place_console(1);
     }
 }

@@ -15,13 +15,23 @@
  *
  * =====================================================================================
  */
-#include "cmd_hier.h"
 #include <stdio.h>
+#include "cmdtlv.h"
 
 int
 show_ip_igmp_groups_handler(ser_buff_t *tlv_buf){
+
+    tlv_struct_t *tlv = NULL;   
+    int i = 0;
     
-    printf("%s() is called ....", __FUNCTION__);
+    TLV_LOOP(tlv_buf, tlv, i){
+        if(strncmp(tlv->leaf_id, "group-ip", strlen("group-ip")) == 0){
+            printf("Group Ip Recvd in application = %s\n", tlv->value);   
+        }
+        else if(strncmp(tlv->leaf_id, "vlan-id", strlen("vlan-id")) == 0){
+            printf("vlan recieved in application = %s\n", tlv->value);
+        }
+    }
     return 0;
 }
 
@@ -52,6 +62,11 @@ user_vlan_validation_callback(char *vlan_id){
 }
 
 
+/*Import from library*/
+extern cmd_t show;
+extern cmd_t debug;
+extern cmd_t config;
+
 
 int
 main(int argc, char **argv){
@@ -59,14 +74,8 @@ main(int argc, char **argv){
     init_libcli();
     /*Level 0*/
 
-    static cmd_t show = {"show", 0, "show commands", NULL_OPTIONS};
-    static_register_command_after_command(0, &show);
-
-    static cmd_t debug = {"debug", 0, "debug commands", NULL_OPTIONS};
-    static_register_command_after_command(0, &debug);
-
-    static cmd_t config = {"config", 0, "Configuration Commands", NULL_OPTIONS};
-    static_register_command_after_command(0, &config);
+    static cmd_t cmsh = {"cmsh", 0, "cmsh hidden commands", NULL_OPTIONS};
+    static_register_command_after_command(0, &cmsh);
 
     /*Level 1*/
     static cmd_t ip = {"ip", 0, "Internet Protocol(IP)", NULL_OPTIONS};

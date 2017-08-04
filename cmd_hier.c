@@ -16,18 +16,25 @@
  * =====================================================================================
  */
 
-#include "cmd_hier.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-
+#include "cmdtlv.h"
 
 #define TLV_MAX_BUFFER_SIZE 1048
 
 param_t root;
 leaf_type_handler leaf_handler_array[LEAF_MAX];
 ser_buff_t *tlv_buff;
+
+/*Default zero level commands hooks. Application must
+ * extern below command hooks*/
+cmd_t show;
+cmd_t debug;
+cmd_t config;
+
+
 
 static param_t*
 get_param_from_cmd(cmd_t *cmd){
@@ -45,6 +52,7 @@ get_param_from_leaf(leaf_t *leaf){
     return param;
 }
 
+/*Default validation handlers for Data types*/
 
 static int
 int_validation_handler(leaf_t *leaf, char *value_passed){
@@ -85,6 +93,20 @@ float_validation_handler(leaf_t *leaf, char *value_passed){
     return 0;
 }
 
+
+/*Default Command Handlers for Default Commands*/
+static int
+config_console_name_handler(ser_buff_t *b){
+    
+    tlv_struct_t *tlv = NULL;
+    int i = 0;
+
+    TLV_LOOP(b, tlv, i){
+        set_console_name(tlv->value);
+    }
+    return 0;
+}
+
 char*
 get_str_leaf_type(leaf_type_t leaf_type){
 
@@ -105,6 +127,7 @@ get_str_leaf_type(leaf_type_t leaf_type){
 
 void 
 init_libcli(){
+
     memset(&root, 0, sizeof(param_t));
     root.param_type = CMD;
     root.cmd_type.cmd = calloc(1, sizeof(cmd_t));
@@ -122,6 +145,46 @@ init_libcli(){
     init_serialized_buffer_of_defined_size(&tlv_buff, TLV_MAX_BUFFER_SIZE);
 
     set_console_name("router");
+
+    /*Registering Zero level default command hooks*/
+    /*Show hook*/
+    memset(&show, 0, sizeof(cmd_t));
+    strncpy(show.cmd_name, "show", strlen("show"));
+    show.cmd_name[strlen("show")] = '\0';
+    show.callback = NULL;
+    strncpy(show.help, "show commands", strlen("show commands"));
+    show.help[strlen(show.help)] = '\0';
+    static_register_command_after_command(0, &show);
+
+    /*debug hook*/
+    memset(&debug, 0, sizeof(cmd_t));
+    strncpy(debug.cmd_name, "debug", strlen("debug"));
+    debug.cmd_name[strlen("debug")] = '\0';
+    debug.callback = NULL;
+    strncpy(debug.help, "debug commands", strlen("debug commands"));
+    debug.help[strlen(debug.help)] = '\0';
+    static_register_command_after_command(0, &debug);
+
+    /*configure hook*/
+    memset(&config, 0, sizeof(cmd_t));
+    strncpy(config.cmd_name, "config", strlen("config"));
+    config.cmd_name[strlen("config")] = '\0';
+    config.callback = NULL;
+    strncpy(config.help, "configuration commands", strlen("configuration commands"));
+    config.help[strlen(config.help)] = '\0';
+    static_register_command_after_command(0, &config);
+
+    /*config console name <new name>*/
+    static cmd_t config_console = {"console", 0, "console", NULL_OPTIONS};
+    static_register_command_after_command(&config, &config_console);
+
+    static cmd_t config_console_name = {"name", 0, "name", NULL_OPTIONS};
+    static_register_command_after_command(&config_console, &config_console_name);
+
+    static leaf_t config_console_name_name = {STRING, "Abhishek", config_console_name_handler,
+                                              0, "console-name", "Name of Console", NULL_OPTIONS};
+
+    static_register_leaf_after_command(&config_console_name, &config_console_name_name);
 }
 
 void
