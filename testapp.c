@@ -23,7 +23,10 @@ show_ip_igmp_groups_handler(ser_buff_t *tlv_buf){
 
     tlv_struct_t *tlv = NULL;   
     int i = 0;
+   
+    dump_tlv_serialized_buffer(tlv_buf);
     
+#if 0
     TLV_LOOP(tlv_buf, tlv, i){
         if(strncmp(tlv->leaf_id, "group-ip", strlen("group-ip")) == 0){
             printf("Group Ip Recvd in application = %s\n", tlv->value);   
@@ -32,6 +35,7 @@ show_ip_igmp_groups_handler(ser_buff_t *tlv_buf){
             printf("vlan recieved in application = %s\n", tlv->value);
         }
     }
+#endif
     return 0;
 }
 
@@ -52,7 +56,6 @@ show_cmd_tree(ser_buff_t *tlv_buf){
 int
 user_vlan_validation_callback(char *vlan_id){
 
-    printf("%s() is called ....\n", __FUNCTION__);
     int vlan_no = atoi(vlan_id);
 
     if(vlan_no > 0 && vlan_no < 4096)

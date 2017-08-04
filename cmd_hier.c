@@ -56,40 +56,40 @@ get_param_from_leaf(leaf_t *leaf){
 
 static int
 int_validation_handler(leaf_t *leaf, char *value_passed){
-    printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
-                            get_str_leaf_type(leaf->leaf_type), value_passed);
+    /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
+                            get_str_leaf_type(leaf->leaf_type), value_passed);*/
     return 0;
 }
 
 
 static int
 string_validation_handler(leaf_t *leaf, char *value_passed){
-    printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
-                            get_str_leaf_type(leaf->leaf_type), value_passed);
+    /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
+                            get_str_leaf_type(leaf->leaf_type), value_passed);*/
     return 0;
 }
 
 
 static int
 ipv4_validation_handler(leaf_t *leaf, char *value_passed){
-    printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
-                            get_str_leaf_type(leaf->leaf_type), value_passed);
+    /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
+                            get_str_leaf_type(leaf->leaf_type), value_passed);*/
     return 0;
 }
 
 
 static int
 ipv6_validation_handler(leaf_t *leaf, char *value_passed){
-    printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
-                            get_str_leaf_type(leaf->leaf_type), value_passed);
+    /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
+                            get_str_leaf_type(leaf->leaf_type), value_passed);*/
     return 0;
 }
 
 
 static int
 float_validation_handler(leaf_t *leaf, char *value_passed){
-    printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
-                            get_str_leaf_type(leaf->leaf_type), value_passed);
+    /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
+                            get_str_leaf_type(leaf->leaf_type), value_passed);*/
     return 0;
 }
 
@@ -187,9 +187,10 @@ init_libcli(){
     static_register_leaf_after_command(&config_console_name, &config_console_name_name);
 }
 
+
 void
 static_register_command_after_command(cmd_t *parent, cmd_t *child){
-    
+
     int i = 0;
     if(!parent)
         parent = root.cmd_type.cmd;
@@ -203,6 +204,7 @@ static_register_command_after_command(cmd_t *parent, cmd_t *child){
     }
     printf("%s() : Error : No space for new command : %s\n", __FUNCTION__, child->cmd_name);
 }
+
 
 void
 static_register_leaf_after_command(cmd_t *parent, leaf_t *child){

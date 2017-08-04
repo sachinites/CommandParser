@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  cmdtlv2.h
+ *       Filename:  cmdtlv.h
  *
  *    Description:  TLV implementation on top of serialized library
  *
@@ -22,6 +22,7 @@
 
 #include "cmd_hier.h"
 #include "serialize.h"
+#include <stdio.h>
 
 #pragma pack (push,1)
 typedef struct tlv_struct{
@@ -56,5 +57,27 @@ typedef struct tlv_struct{
 #define put_value_in_tlv(tlvptr, _val)         \
     strncpy(tlvptr->value, _val, MIN(LEAF_VALUE_HOLDER_SIZE, strlen(_val)));
 
+static inline void 
+print_tlv_content(tlv_struct_t *tlv){
+
+    if(!tlv)
+        return;
+
+    printf("tlv->leaf_type = %s\n", get_str_leaf_type(tlv->leaf_type));
+    printf("tlv->leaf_id   = %s\n", tlv->leaf_id);
+    printf("tlv->value     = %s\n", tlv->value);
+}
+
+static inline void
+dump_tlv_serialized_buffer(ser_buff_t *tlv_ser_buff){
+
+    tlv_struct_t *tlv = NULL;
+    int i = 0;
+
+    TLV_LOOP(tlv_ser_buff, tlv, i){
+        print_tlv_content(tlv);
+        printf("\n");
+    }
+}
 
 #endif /* __CMDTLV__H */

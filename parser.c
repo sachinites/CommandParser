@@ -216,7 +216,6 @@ parse_input_cmd(char *input, unsigned int len){
 
         free_tokens(tokens);
         reset_serialize_buffer(tlv_buff);
-
 }
 
 
@@ -241,5 +240,11 @@ command_parser(void){
         memset(cons_input_buffer, 0, sizeof(cons_input_buffer));
         place_console(1);
     }
+}
+
+void
+enhanced_command_parser(void){
+    
+
 }
 

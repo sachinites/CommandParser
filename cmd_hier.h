@@ -37,6 +37,12 @@
 #define LEAF_HELP_STRING_SIZE   64
 #define CMD_HELP_STRING_SIZE    LEAF_HELP_STRING_SIZE
 
+
+typedef enum{
+    CONFIG_DISABLE,
+    CONFIG_ENABLE
+} op_mode;
+
 typedef struct serialized_buffer ser_buff_t;
 typedef int (*cmd_callback)(ser_buff_t *tlv_buf);
 typedef int (*user_validation_callback)(char *leaf_value);
@@ -157,7 +163,7 @@ static inline int
 is_cmd_string_match(param_t *param, const char *str){
     return (strncmp(param->cmd_type.cmd->cmd_name, 
             str, 
-            MIN(strlen(param->cmd_type.cmd->cmd_name), strlen(str))));        
+            strlen(str)));        
 }
 
 static inline param_t **
