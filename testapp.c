@@ -19,7 +19,7 @@
 #include "cmdtlv.h"
 
 int
-show_ip_igmp_groups_handler(ser_buff_t *tlv_buf){
+show_ip_igmp_groups_handler(ser_buff_t *tlv_buf, op_mode enable_or_disable){
 
     tlv_struct_t *tlv = NULL;   
     int i = 0;
@@ -40,14 +40,14 @@ show_ip_igmp_groups_handler(ser_buff_t *tlv_buf){
 }
 
 int
-config_router_name_handler(ser_buff_t *tlv_buf){
+config_router_name_handler(ser_buff_t *tlv_buf, op_mode enable_or_disable){
     set_console_name("router2");
     return 0;
 }
 
 
 int
-show_cmd_tree(ser_buff_t *tlv_buf){
+show_cmd_tree(ser_buff_t *tlv_buf, op_mode enable_or_disable){
         
     dump_cmd_tree();
     return 0;

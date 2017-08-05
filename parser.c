@@ -78,7 +78,7 @@ find_matching_param(param_t **options, const char *cmd_name){
 static tlv_struct_t tlv;
 
 static int
-build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param){ 
+build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param, op_mode enable_or_disable){ 
     
     int i = 0;
     param_t *param = &root;
@@ -185,7 +185,7 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param){
             return -1;
         case COMPLETE:
             printf("Parse Success.\n");
-            INVOKE_APPLICATION_CALLBACK_HANDLER(param, tlv_buff);
+            INVOKE_APPLICATION_CALLBACK_HANDLER(param, tlv_buff, enable_or_disable);
             break;
             case USER_INVALID_LEAF:
                 printf("Error : User validation has failed\n");
@@ -209,11 +209,12 @@ parse_input_cmd(char *input, unsigned int len){
             return;
 
         /*Walk the cmd tree now and build the TLV buffer of leavf values, if any*/
-
-        if(build_tlv_buffer(tokens, token_cnt, &param) < 0){
-            //reset_serialize_buffer(tlv_buff);            
-        }
-
+        if(strncmp(tokens[0], "config", MIN(strlen("config"), strlen(tokens[0]))) == 0)
+            build_tlv_buffer(tokens, token_cnt, &param, CONFIG_ENABLE);
+        else if((strncmp(tokens[0], "no", 2) == 0))   
+            build_tlv_buffer(tokens, token_cnt, &param, CONFIG_DISABLE);
+        else 
+            build_tlv_buffer(tokens, token_cnt, &param, OPERATIONAL); 
         free_tokens(tokens);
         reset_serialize_buffer(tlv_buff);
 }

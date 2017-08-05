@@ -40,11 +40,12 @@
 
 typedef enum{
     CONFIG_DISABLE,
-    CONFIG_ENABLE
+    CONFIG_ENABLE,
+    OPERATIONAL
 } op_mode;
 
 typedef struct serialized_buffer ser_buff_t;
-typedef int (*cmd_callback)(ser_buff_t *tlv_buf);
+typedef int (*cmd_callback)(ser_buff_t *tlv_buf, op_mode enable_or_diable);
 typedef int (*user_validation_callback)(char *leaf_value);
 
 
@@ -153,11 +154,11 @@ start_shell(void);
 #define INVOKE_LEAF_LIB_VALIDATION_CALLBACK(param, arg) \
                     (leaf_handler_array[GET_LEAF_TYPE(param)](GET_PARAM_LEAF(param), arg))
 
-#define INVOKE_APPLICATION_CALLBACK_HANDLER(param, arg)                    \
+#define INVOKE_APPLICATION_CALLBACK_HANDLER(param, arg, enable_or_disable) \
     if(IS_PARAM_CMD(param) && param->cmd_type.cmd->callback)               \
-        param->cmd_type.cmd->callback(arg);                                \
+        param->cmd_type.cmd->callback(arg, enable_or_disable);             \
     else if(IS_PARAM_LEAF(param) && param->cmd_type.leaf->callback)        \
-        param->cmd_type.leaf->callback(arg); 
+        param->cmd_type.leaf->callback(arg, enable_or_disable); 
                                       
 static inline int
 is_cmd_string_match(param_t *param, const char *str){

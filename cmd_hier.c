@@ -33,7 +33,7 @@ ser_buff_t *tlv_buff;
 cmd_t show;
 cmd_t debug;
 cmd_t config;
-
+cmd_t no;
 
 
 static param_t*
@@ -96,13 +96,16 @@ float_validation_handler(leaf_t *leaf, char *value_passed){
 
 /*Default Command Handlers for Default Commands*/
 static int
-config_console_name_handler(ser_buff_t *b){
+config_console_name_handler(ser_buff_t *b, op_mode enable_or_disable){
     
     tlv_struct_t *tlv = NULL;
     int i = 0;
 
     TLV_LOOP(b, tlv, i){
-        set_console_name(tlv->value);
+        if(enable_or_disable == CONFIG_ENABLE)
+            set_console_name(tlv->value);
+        else
+            set_console_name("router");
     }
     return 0;
 }
@@ -174,6 +177,19 @@ init_libcli(){
     config.help[strlen(config.help)] = '\0';
     static_register_command_after_command(0, &config);
 
+#if 1
+    /* no config hook*/
+    memset(&no, 0, sizeof(cmd_t));
+    strncpy(no.cmd_name, "no", strlen("no"));
+    no.cmd_name[strlen("no")] = '\0';
+    no.callback = NULL;
+    strncpy(no.help, "command negation", strlen("command negation"));
+    no.help[strlen(no.help)] = '\0';
+    static_register_command_after_command(0, &no);
+    
+    /* no config hook*/ 
+    static_register_command_after_command(&no, &config);
+#endif
     /*config console name <new name>*/
     static cmd_t config_console = {"console", 0, "console", NULL_OPTIONS};
     static_register_command_after_command(&config, &config_console);
@@ -332,9 +348,9 @@ _dump_one_cmd(param_t *param, unsigned short tabs){
     PRINT_TABS(tabs);
 
     if(IS_PARAM_CMD(param))
-        printf("-->%s", GET_PARAM_CMD(param)->cmd_name);
+        printf("-->%s(%d)", GET_PARAM_CMD(param)->cmd_name, tabs);
     else
-        printf("-->%s", GET_LEAF_TYPE_STR(param));
+        printf("-->%s(%d)", GET_LEAF_TYPE_STR(param), tabs);
 
     if(IS_PARAM_CMD(param)){
         cmd = GET_PARAM_CMD(param);
