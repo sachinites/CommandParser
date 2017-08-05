@@ -45,7 +45,7 @@ get_last_command();
 
 static param_t*
 get_param_from_cmd(cmd_t *cmd){
-    param_t *param = calloc(1, sizeof(param_t));
+    param_t *param = (param_t *)calloc(1, sizeof(param_t));
     param->param_type = CMD;
     param->cmd_type.cmd = cmd;
     return param;
@@ -53,7 +53,7 @@ get_param_from_cmd(cmd_t *cmd){
 
 static param_t*
 get_param_from_leaf(leaf_t *leaf){
-    param_t *param = calloc(1, sizeof(param_t));
+    param_t *param = (param_t *)calloc(1, sizeof(param_t));
     param->param_type = LEAF;
     param->cmd_type.leaf = leaf;
     return param;
@@ -148,7 +148,7 @@ init_libcli(){
 
     memset(&root, 0, sizeof(param_t));
     root.param_type = CMD;
-    root.cmd_type.cmd = calloc(1, sizeof(cmd_t));
+    root.cmd_type.cmd = (cmd_t *)calloc(1, sizeof(cmd_t));
     strncpy(root.cmd_type.cmd->cmd_name, "ROOT", CMD_NAME_SIZE-1);
     root.cmd_type.cmd->cmd_name[CMD_NAME_SIZE-1] = '\0';
 
@@ -294,7 +294,7 @@ dynamic_register_command_after_command(cmd_t *parent,
     for(; i < MAX_OPTION_SIZE; i++){
         if(parent->options[i])
             continue;
-        child = calloc(1, sizeof(cmd_t));
+        child = (cmd_t *)calloc(1, sizeof(cmd_t));
         strncpy(child->cmd_name, cmd_name, CMD_NAME_SIZE -1);
         child->cmd_name[CMD_NAME_SIZE -1] = '\0';
         child->callback = callback;
@@ -338,7 +338,7 @@ dynamic_register_leaf_after_command(cmd_t *parent, leaf_type_t leaf_type,
         if(parent->options[i])
             continue;
 
-        child = calloc(1, sizeof(leaf_t));
+        child = (leaf_t *)calloc(1, sizeof(leaf_t));
         child->leaf_type = leaf_type;
         strncpy(child->value_holder, def_leaf_value, 63);
         child->callback = callback;

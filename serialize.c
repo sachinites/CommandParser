@@ -41,7 +41,7 @@ int get_serialize_buffer_current_ptr_offset(ser_buff_t *b){
 
 char* get_serialize_buffer_current_ptr(ser_buff_t *b){
 	if(!b) return NULL;
-	return  b->b + b->next;
+	return  (char *)(b->b) + b->next;
 }
 
 int  get_serialize_buffer_size(ser_buff_t *b){
