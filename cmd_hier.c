@@ -140,6 +140,7 @@ get_str_leaf_type(leaf_type_t leaf_type){
             return "IPV6";
         return "Unknown";
     }
+    return NULL;
 }
 
 void 

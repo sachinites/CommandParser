@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include "cmdtlv.h"
 #include "libcli.h"
+#include <stdlib.h>
 
 int
 show_ip_igmp_groups_handler(ser_buff_t *tlv_buf, op_mode enable_or_disable){

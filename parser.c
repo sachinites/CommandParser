@@ -162,6 +162,9 @@ build_tlv_buffer(char **tokens,
                     cmd = GET_PARAM_CMD(parent);
                 else
                     leaf = GET_PARAM_LEAF(parent);
+                
+                if(IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(parent))
+                    printf("<Enter>\n");
 
                 if(cmd){
                     for(; i < MAX_OPTION_SIZE; i++){
