@@ -20,12 +20,12 @@
 #include <stdlib.h>
 #include "string_util.h"
 #include "cmdtlv.h"
-
+#include "cliconst.h"
 
 extern param_t root;
 extern leaf_type_handler leaf_handler_array[LEAF_MAX];
 extern ser_buff_t *tlv_buff;
-char console_name[32];
+char console_name[TERMINAL_NAME_SIZE];
 
 
 static void
@@ -35,7 +35,9 @@ place_console(char new_line){
     printf("%s> ", console_name);
 }
 
-static char cons_input_buffer[2048];
+static char cons_input_buffer[CONS_INPUT_BUFFER_SIZE];
+static char last_command_input_buffer[CONS_INPUT_BUFFER_SIZE];
+
 
 typedef enum{
     COMPLETE,
@@ -44,8 +46,16 @@ typedef enum{
     USER_INVALID_LEAF,
     CMD_NOT_FOUND,
     QUESTION_MARK,
+    INCOMPLETE_COMMAND,
     UNKNOWN
 } CMD_PARSE_STATUS;
+
+char *
+get_last_command(){
+    return last_command_input_buffer;
+}
+
+
 
 #if 1
 static param_t*
@@ -78,14 +88,17 @@ find_matching_param(param_t **options, const char *cmd_name){
 static tlv_struct_t tlv;
 
 static int
-build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param, op_mode enable_or_disable){ 
-    
+build_tlv_buffer(char **tokens, 
+                 size_t token_cnt, 
+                 param_t **out_param, 
+                 op_mode enable_or_disable){ 
+
     int i = 0;
     param_t *param = &root;
     param_t *parent = NULL;
     CMD_PARSE_STATUS status = COMPLETE;
     memset(&tlv, 0, sizeof(tlv_struct_t));
-         
+
     for(; i < token_cnt; i++){
         parent = param;
         if(strncmp(*(tokens +i), "?", 1) == 0){
@@ -97,7 +110,7 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param, op_mode e
         if(param){
             if(IS_PARAM_LEAF(param)){
                 /*printf("token[%d] = %s Not found in cmd tree, leaf = %s\n", 
-                        i, *(tokens +i), GET_LEAF_TYPE_STR(param));*/
+                  i, *(tokens +i), GET_LEAF_TYPE_STR(param));*/
 
                 /*If it is a leaf, collect the leaf value and continue to parse. Below function performs
                  * basic standard sanity checks on the leaf value input by the user */ 
@@ -133,9 +146,13 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param, op_mode e
         break;
     }
 
+    if(status == COMPLETE){
+        if(!IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(param))
+            status = INCOMPLETE_COMMAND;
+    }
+
     switch(status){
         case QUESTION_MARK:
-            /*print all childs of parent*/
             {
                 i = 0;
                 cmd_t *cmd = NULL;
@@ -145,8 +162,7 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param, op_mode e
                     cmd = GET_PARAM_CMD(parent);
                 else
                     leaf = GET_PARAM_LEAF(parent);
-                
-                //printf("\n");            
+
                 if(cmd){
                     for(; i < MAX_OPTION_SIZE; i++){
                         if(cmd->options[i]){
@@ -181,15 +197,18 @@ build_tlv_buffer(char **tokens, size_t token_cnt, param_t **out_param, op_mode e
             return -1;
         case INVALID_LEAF:
             printf("Error : Following leaf value could not be validated : %s, Expected Data type = %s\n", 
-                            *(tokens +i), GET_LEAF_TYPE_STR(param));
+                    *(tokens +i), GET_LEAF_TYPE_STR(param));
             return -1;
         case COMPLETE:
             printf("Parse Success.\n");
             INVOKE_APPLICATION_CALLBACK_HANDLER(param, tlv_buff, enable_or_disable);
             break;
-            case USER_INVALID_LEAF:
-                printf("Error : User validation has failed\n");
-                return -1;
+        case USER_INVALID_LEAF:
+            printf("Error : User validation has failed\n");
+            return -1;
+        case INCOMPLETE_COMMAND:
+            printf("Error : Incomplete Command\n");
+            return -1;
         default:
             printf("FATAL : Unknown case fall\n");
     }
@@ -236,9 +255,19 @@ command_parser(void){
             place_console(0);
             continue; 
         }
-        cons_input_buffer[strlen(cons_input_buffer) - 1] = '\0'; 
+
+        cons_input_buffer[strlen(cons_input_buffer) - 1] = '\0';
+         
         parse_input_cmd(cons_input_buffer, strlen(cons_input_buffer));
-        memset(cons_input_buffer, 0, sizeof(cons_input_buffer));
+
+        memset(last_command_input_buffer, 0, CONS_INPUT_BUFFER_SIZE);
+
+        memcpy(last_command_input_buffer, cons_input_buffer, strlen(cons_input_buffer));
+
+        last_command_input_buffer[strlen(last_command_input_buffer)] = '\0';
+
+        memset(cons_input_buffer, 0, CONS_INPUT_BUFFER_SIZE);
+
         place_console(1);
     }
 }

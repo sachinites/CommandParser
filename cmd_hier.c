@@ -21,6 +21,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "cmdtlv.h"
+#include "libcli.h"
+#include "cmd_hier.h"
 
 #define TLV_MAX_BUFFER_SIZE 1048
 
@@ -34,6 +36,11 @@ cmd_t show;
 cmd_t debug;
 cmd_t config;
 cmd_t no;
+
+static cmd_t repeat;
+
+extern char *
+get_last_command();
 
 
 static param_t*
@@ -110,6 +117,13 @@ config_console_name_handler(ser_buff_t *b, op_mode enable_or_disable){
     return 0;
 }
 
+static int
+repeat_last_command(ser_buff_t *b, op_mode enable_or_disable){
+   char *last_cmd = get_last_command();
+   printf("prev : %s\n", last_cmd);
+   return 0; 
+}
+
 char*
 get_str_leaf_type(leaf_type_t leaf_type){
 
@@ -177,7 +191,15 @@ init_libcli(){
     config.help[strlen(config.help)] = '\0';
     static_register_command_after_command(0, &config);
 
-#if 1
+    /*configure repeat*/
+    memset(&repeat, 0, sizeof(cmd_t));
+    strncpy(repeat.cmd_name, "repeat", strlen("repeat"));
+    repeat.cmd_name[strlen("repeat")] = '\0';
+    repeat.callback = repeat_last_command;
+    strncpy(repeat.help, "repeat last command", strlen("repeat last command"));
+    repeat.help[strlen(repeat.help)] = '\0';
+    static_register_command_after_command(0, &repeat);
+
     /* no config hook*/
     memset(&no, 0, sizeof(cmd_t));
     strncpy(no.cmd_name, "no", strlen("no"));
@@ -189,7 +211,7 @@ init_libcli(){
     
     /* no config hook*/ 
     static_register_command_after_command(&no, &config);
-#endif
+    
     /*config console name <new name>*/
     static cmd_t config_console = {"console", 0, "console", NULL_OPTIONS};
     static_register_command_after_command(&config, &config_console);
@@ -354,6 +376,10 @@ _dump_one_cmd(param_t *param, unsigned short tabs){
 
     if(IS_PARAM_CMD(param)){
         cmd = GET_PARAM_CMD(param);
+        /*Skip dumping the 'no' branch of the cmd tree*/
+        if(strncmp(cmd->cmd_name, "no",2) == 0)
+            return;
+
         for(; i < MAX_OPTION_SIZE; i++){
             if(cmd->options[i]){
                 printf("\n");

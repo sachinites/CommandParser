@@ -19,16 +19,24 @@
 #include "string_util.h"
 #include <stdlib.h>
 #include <assert.h>
+#include "cliconst.h"
 
-char** str_split(char* a_str, const char a_delim, size_t *token_cnt)
+
+static char a_str[CONS_INPUT_BUFFER_SIZE];
+
+char** str_split(char* _a_str, const char a_delim, size_t *token_cnt)
 {
     char** result    = 0;
     size_t count     = 0;
-    char* tmp        = a_str;
+    char* tmp        = NULL;
     char* last_comma = 0;
     char delim[2];
     delim[0] = a_delim;
     delim[1] = 0;
+
+    memset(a_str, 0, CONS_INPUT_BUFFER_SIZE);
+    memcpy(a_str, _a_str, strlen(_a_str));
+    tmp = a_str;
 
     /* Count how many elements will be extracted. */
     while (*tmp)

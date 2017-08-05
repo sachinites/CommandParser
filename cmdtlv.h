@@ -20,9 +20,10 @@
 #ifndef __CMDTLV__H
 #define __CMDTLV__H
 
-#include "cmd_hier.h"
+#include "libcliid.h"
 #include "serialize.h"
 #include <stdio.h>
+#include "cmd_hier.h"
 
 #pragma pack (push,1)
 typedef struct tlv_struct{

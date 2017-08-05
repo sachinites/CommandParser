@@ -21,6 +21,7 @@
 
 #include <string.h>
 #include <assert.h>
+#include "libcliid.h"
 
 /* If you modify the below Macro, pls put 
  * as many zeroes in NULL_OPTIONS expansion as well*/
@@ -29,26 +30,28 @@
                          0,0,0,0,0,0,0,0,0,0,\
                          0,0,0,0,0,0,0,0,0,0,}
 
-
-
+#include "cliconst.h"
+#if 0
 #define CMD_NAME_SIZE           32
 #define LEAF_VALUE_HOLDER_SIZE  64
 #define LEAF_ID_SIZE            32
 #define LEAF_HELP_STRING_SIZE   64
 #define CMD_HELP_STRING_SIZE    LEAF_HELP_STRING_SIZE
+#define TERMINAL_NAME_SIZE      32
+#endif
 
-
+#if 0
 typedef enum{
     CONFIG_DISABLE,
     CONFIG_ENABLE,
     OPERATIONAL
 } op_mode;
-
+#endif
 typedef struct serialized_buffer ser_buff_t;
 typedef int (*cmd_callback)(ser_buff_t *tlv_buf, op_mode enable_or_diable);
 typedef int (*user_validation_callback)(char *leaf_value);
 
-
+#if 0
 typedef enum{
     INT,
     STRING,
@@ -57,7 +60,7 @@ typedef enum{
     IPV6,
     LEAF_MAX
 } leaf_type_t;
-
+#endif
 
 typedef struct _param_t_ param_t;
 
@@ -95,12 +98,15 @@ struct _param_t_{
     _param_t cmd_type;
 };
 
+#if 0
 void
 init_libcli();
 
 void
 set_console_name(const char *cons_name);
+#endif
 
+#if 0
 /*Command Registration*/
 void 
 static_register_command_after_command(cmd_t *parent, cmd_t *child);
@@ -122,16 +128,17 @@ dynamic_register_leaf_after_command(cmd_t *parent, leaf_type_t leaf_type,
 leaf_t *
 dynamic_register_leaf_after_leaf(leaf_t *parent, leaf_type_t leaf_type,
                                  const char *def_leaf_value, cmd_callback callback);
-
+#endif
 char*
 get_str_leaf_type(leaf_type_t leaf_type);
 
+#if 0
 void
 dump_cmd_tree();
 
 void
 start_shell(void);
-
+#endif
 
 #define MIN(a,b)    (a < b ? a : b)
 
@@ -149,6 +156,11 @@ start_shell(void);
 
 #define IS_LEAF_USER_VALIDATION_CALLBACK_REGISTERED(param)  \
                     (param->cmd_type.leaf->user_validation_cb_fn)
+
+#define IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(param)           \
+        ((IS_PARAM_CMD(param) && param->cmd_type.cmd->callback)     \
+        || (IS_PARAM_LEAF(param) && param->cmd_type.leaf->callback))
+
 #define _INVOKE_LEAF_USER_VALIDATION_CALLBACK(param, arg) \
                     (param->cmd_type.leaf->user_validation_cb_fn(arg))
 #define INVOKE_LEAF_LIB_VALIDATION_CALLBACK(param, arg) \
