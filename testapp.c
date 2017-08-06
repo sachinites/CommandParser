@@ -79,21 +79,25 @@ main(int argc, char **argv){
     init_libcli();
     /*Level 0*/
 
+    cmd_t *show   = libcli_get_show_hook();
+    cmd_t *debug  = libcli_get_debug_hook();
+    cmd_t *config = libcli_get_config_hook();
+
     static cmd_t cmsh = {"cmsh", 0, "cmsh hidden commands", NULL_OPTIONS};
     static_register_command_after_command(0, &cmsh);
 
     /*Level 1*/
     static cmd_t ip = {"ip", 0, "Internet Protocol(IP)", NULL_OPTIONS};
-    static_register_command_after_command(&show, &ip);
+    static_register_command_after_command(show, &ip);
 
     static cmd_t ipv6 = {"ipv6", 0, "Internet Protocol(IPV6)" ,NULL_OPTIONS};
-    static_register_command_after_command(&show, &ipv6);
+    static_register_command_after_command(show, &ipv6);
 
     static cmd_t debug_show = {"show", 0, "debug show commands", NULL_OPTIONS};
-    static_register_command_after_command(&debug, &debug_show);
+    static_register_command_after_command(debug, &debug_show);
      
     static cmd_t config_router = {"router", 0, "Configuration Router",NULL_OPTIONS};
-    static_register_command_after_command(&config, &config_router);
+    static_register_command_after_command(config, &config_router);
 
     /*Level 2*/
 

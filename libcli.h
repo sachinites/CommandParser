@@ -29,6 +29,18 @@ init_libcli();
 void
 set_console_name(const char *cons_name);
 
+/*import functions. These functions to be used to get access to 
+ * library global variables - the zero level command hooks */
+
+cmd_t *
+libcli_get_show_hook(void);
+
+cmd_t *
+libcli_get_debug_hook(void);
+
+cmd_t *
+libcli_get_config_hook(void);
+
 /*Command Registration*/
 void
 static_register_command_after_command(cmd_t *parent, cmd_t *child);

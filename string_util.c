@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "cliconst.h"
-
+#include <ctype.h>
 
 static char a_str[CONS_INPUT_BUFFER_SIZE];
 
@@ -63,11 +63,14 @@ char** str_split(char* _a_str, const char a_delim, size_t *token_cnt)
         size_t idx  = 0;
         char* token = strtok(a_str, delim);
 
+        string_space_trim(token);
+
         while (token)
         {
             assert(idx < count);
             *(result + idx++) = strdup(token);
             token = strtok(0, delim);
+            string_space_trim(token);
         }
         assert(idx == count - 1);
         *(result + idx) = 0;
@@ -75,6 +78,34 @@ char** str_split(char* _a_str, const char a_delim, size_t *token_cnt)
 
     *token_cnt = count -1;
     return result;
+}
+
+void
+string_space_trim(char *string){
+
+    if(!string)
+        return;
+
+    char* ptr = string;
+    int len = strlen(ptr);
+
+    if(!len){
+        return;
+    }
+
+    if(!isspace(ptr[0]) && !isspace(ptr[len-1])){
+        return;
+    }
+
+    while(len-1 > 0 && isspace(ptr[len-1])){
+        ptr[--len] = 0;
+    }
+
+    while(*ptr && isspace(*ptr)){
+        ++ptr, --len;
+    }
+
+    memmove(string, ptr, len + 1);
 }
 
 void

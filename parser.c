@@ -47,6 +47,7 @@ typedef enum{
     CMD_NOT_FOUND,
     QUESTION_MARK,
     INCOMPLETE_COMMAND,
+    MULTIPLE_MATCHING_COMMANDS,
     UNKNOWN
 } CMD_PARSE_STATUS;
 
@@ -57,10 +58,9 @@ get_last_command(){
 
 
 
-#if 1
 static param_t*
 find_matching_param(param_t **options, const char *cmd_name){
-
+    
     int i = 0, leaf_index = -1;
     for(; options[i] && i < MAX_OPTION_SIZE; i++){
         if(IS_PARAM_LEAF(options[i])){
@@ -75,9 +75,8 @@ find_matching_param(param_t **options, const char *cmd_name){
     if(leaf_index >= 0)
         return options[leaf_index];
 
-     return NULL;
+    return NULL;
 }
-#endif
 
 /*-----------------------------------------------------------------------------
  *  Return 0 on Success, -1 on failure
@@ -93,7 +92,7 @@ build_tlv_buffer(char **tokens,
                  param_t **out_param, 
                  op_mode enable_or_disable){ 
 
-    int i = 0;
+    int i = 0; 
     param_t *param = &root;
     param_t *parent = NULL;
     CMD_PARSE_STATUS status = COMPLETE;
@@ -107,6 +106,7 @@ build_tlv_buffer(char **tokens,
         }
 
         param = find_matching_param(get_child_array_ptr(param), *(tokens +i));
+
         if(param){
             if(IS_PARAM_LEAF(param)){
                 /*printf("token[%d] = %s Not found in cmd tree, leaf = %s\n", 
@@ -152,6 +152,8 @@ build_tlv_buffer(char **tokens,
     }
 
     switch(status){
+        case MULTIPLE_MATCHING_COMMANDS:
+            break;
         case QUESTION_MARK:
             {
                 i = 0;
@@ -218,10 +220,9 @@ build_tlv_buffer(char **tokens,
     return 0;
 }
 
-static void
+void
 parse_input_cmd(char *input, unsigned int len){
     
-        int i = 0, tok_no = 0;
         char** tokens = NULL;
         param_t *param = NULL;
         size_t token_cnt = 0;

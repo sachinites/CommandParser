@@ -30,18 +30,36 @@ param_t root;
 leaf_type_handler leaf_handler_array[LEAF_MAX];
 ser_buff_t *tlv_buff;
 
-/*Default zero level commands hooks. Application must
- * extern below command hooks*/
+/*Default zero level commands hooks. */
 cmd_t show;
 cmd_t debug;
 cmd_t config;
 cmd_t no;
+
+/* Function to be used to get access to above hooks*/
+
+cmd_t *
+libcli_get_show_hook(void){
+    return &show;
+}
+
+cmd_t *
+libcli_get_debug_hook(void){
+    return &debug;
+}
+
+cmd_t *
+libcli_get_config_hook(void){
+    return &config;
+}
 
 static cmd_t repeat;
 
 extern char *
 get_last_command();
 
+extern void
+parse_input_cmd(char *input, unsigned int len);
 
 static param_t*
 get_param_from_cmd(cmd_t *cmd){
@@ -119,8 +137,11 @@ config_console_name_handler(ser_buff_t *b, op_mode enable_or_disable){
 
 static int
 repeat_last_command(ser_buff_t *b, op_mode enable_or_disable){
+   static char new_line_consume[2];
    char *last_cmd = get_last_command();
-   printf("prev : %s\n", last_cmd);
+   printf("prev : %s", last_cmd);
+   scanf("%c", new_line_consume);;
+   parse_input_cmd(last_cmd, strlen(last_cmd));
    return 0; 
 }
 
@@ -420,10 +441,10 @@ start_shell(void){
     command_parser();
 }
 
-extern char console_name[32];
+extern char console_name[TERMINAL_NAME_SIZE];
 
 void
 set_console_name(const char *cons_name){
-    strncpy(console_name, cons_name, 31);
-    console_name[31] = '\0';    
+    strncpy(console_name, cons_name, TERMINAL_NAME_SIZE);
+    console_name[TERMINAL_NAME_SIZE -1] = '\0';    
 }

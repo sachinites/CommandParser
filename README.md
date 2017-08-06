@@ -14,3 +14,4 @@ Steps :
 3. Test "echo $LIBRARY_PATH" whether /usr/local/lib is included in the path. If yes, then step 4 and 5 are not required.
 4. In ~/.profile file, add line :  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 5. After step 4, run 'sudo ldconfig'. 
+6. Run aplication executable and enjoy the CLI.

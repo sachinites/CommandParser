@@ -25,5 +25,8 @@ char** str_split(char* a_str,
                  size_t *token_cnt);
 
 void
+string_space_trim(char *string);
+
+void
 free_tokens(char **tokens);
 #endif
