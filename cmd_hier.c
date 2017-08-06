@@ -31,23 +31,23 @@ leaf_type_handler leaf_handler_array[LEAF_MAX];
 ser_buff_t *tlv_buff;
 
 /*Default zero level commands hooks. */
-cmd_t show;
-cmd_t debug;
-cmd_t config;
+param_t show;
+param_t debug;
+param_t config;
 
 /* Function to be used to get access to above hooks*/
 
-cmd_t *
+param_t *
 libcli_get_show_hook(void){
     return &show;
 }
 
-cmd_t *
+param_t *
 libcli_get_debug_hook(void){
     return &debug;
 }
 
-cmd_t *
+param_t *
 libcli_get_config_hook(void){
     return &config;
 }
@@ -57,22 +57,6 @@ get_last_command();
 
 extern void
 parse_input_cmd(char *input, unsigned int len);
-
-static param_t*
-get_param_from_cmd(cmd_t *cmd){
-    param_t *param = (param_t *)calloc(1, sizeof(param_t));
-    param->param_type = CMD;
-    param->cmd_type.cmd = cmd;
-    return param;
-}
-
-static param_t*
-get_param_from_leaf(leaf_t *leaf){
-    param_t *param = (param_t *)calloc(1, sizeof(param_t));
-    param->param_type = LEAF;
-    param->cmd_type.leaf = leaf;
-    return param;
-}
 
 char*
 get_str_leaf_type(leaf_type_t leaf_type){
@@ -99,11 +83,7 @@ get_str_leaf_type(leaf_type_t leaf_type){
 void 
 init_libcli(){
 
-    memset(&root, 0, sizeof(param_t));
-    root.param_type = CMD;
-    root.cmd_type.cmd = (cmd_t *)calloc(1, sizeof(cmd_t));
-    strncpy(root.cmd_type.cmd->cmd_name, "ROOT", CMD_NAME_SIZE-1);
-    root.cmd_type.cmd->cmd_name[CMD_NAME_SIZE-1] = '\0';
+    init_param(&root, CMD, "ROOT", 0, 0, INVALID, 0, "ROOT");
 
     /*Leaf datatypes standard Validation callbacks registration*/
     leaf_handler_array[INT]     = int_validation_handler;
@@ -119,209 +99,106 @@ init_libcli(){
 
     /*Registering Zero level default command hooks*/
     /*Show hook*/
-    memset(&show, 0, sizeof(cmd_t));
-    strncpy(show.cmd_name, "show", strlen("show"));
-    show.cmd_name[strlen("show")] = '\0';
-    show.callback = NULL;
-    strncpy(show.help, "show commands", strlen("show commands"));
-    show.help[strlen(show.help)] = '\0';
-    static_register_command_after_command(0, &show);
+    init_param(&show, CMD, "show", 0, 0, INVALID, 0, "show");
+    libcli_register_param(&root, &show);
 
     /*debug hook*/
-    memset(&debug, 0, sizeof(cmd_t));
-    strncpy(debug.cmd_name, "debug", strlen("debug"));
-    debug.cmd_name[strlen("debug")] = '\0';
-    debug.callback = NULL;
-    strncpy(debug.help, "debug commands", strlen("debug commands"));
-    debug.help[strlen(debug.help)] = '\0';
-    static_register_command_after_command(0, &debug);
+    init_param(&debug, CMD, "debug", 0, 0, INVALID, 0, "debug");
+    libcli_register_param(&root, &debug);
 
     /*configure hook*/
-    memset(&config, 0, sizeof(cmd_t));
-    strncpy(config.cmd_name, "config", strlen("config"));
-    config.cmd_name[strlen("config")] = '\0';
-    config.callback = NULL;
-    strncpy(config.help, "configuration commands", strlen("configuration commands"));
-    config.help[strlen(config.help)] = '\0';
-    static_register_command_after_command(0, &config);
+    init_param(&config, CMD, "config", 0, 0, INVALID, 0, "config");
+    libcli_register_param(&root, &config);
 
     /*configure repeat*/
-    static cmd_t repeat;
-    memset(&repeat, 0, sizeof(cmd_t));
-    strncpy(repeat.cmd_name, "repeat", strlen("repeat"));
-    repeat.cmd_name[strlen("repeat")] = '\0';
-    repeat.callback = repeat_last_command;
-    strncpy(repeat.help, "repeat last command", strlen("repeat last command"));
-    repeat.help[strlen(repeat.help)] = '\0';
-    static_register_command_after_command(0, &repeat);
-
-    /* 'no' hook*/
-    static cmd_t no;
-    memset(&no, 0, sizeof(cmd_t));
-    strncpy(no.cmd_name, "no", strlen("no"));
-    no.cmd_name[strlen("no")] = '\0';
-    no.callback = NULL;
-    strncpy(no.help, "command negation", strlen("command negation"));
-    no.help[strlen(no.help)] = '\0';
-    static_register_command_after_command(0, &no);
+    static param_t repeat;
+    init_param(&repeat, CMD, "repeat", repeat_last_command, 0, INVALID, 0, "repeat");
+    libcli_register_param(&root, &repeat);
     
-    /* 'no config' hook*/ 
-    static_register_command_after_command(&no, &config);
+    /* 'no' hook*/
+    static param_t no;
+    init_param(&no, CMD, "no", 0, 0, INVALID, 0, "command negation");
+    libcli_register_param(&root, &no);
+    
+    /* 'no config' hook*/
+    libcli_register_param(&no, &config); 
     
     /*config console name <new name>*/
-    static cmd_t config_console = {"console", 0, "console", NULL_OPTIONS};
-    static_register_command_after_command(&config, &config_console);
+    static param_t config_console;
+    init_param(&config_console, CMD, "console", 0, 0, INVALID, 0, "console");
+    libcli_register_param(&config, &config_console);
 
-    static cmd_t config_console_name = {"name", 0, "name", NULL_OPTIONS};
-    static_register_command_after_command(&config_console, &config_console_name);
+    
+    static param_t config_console_name;
+    init_param(&config_console_name, CMD, "name", 0, 0, INVALID, 0, "name");
+    libcli_register_param(&config_console, &config_console_name);
 
-    static leaf_t config_console_name_name = {STRING, "Abhishek", config_console_name_handler,
-                                              0, "console-name", "Name of Console", NULL_OPTIONS};
-
-    static_register_leaf_after_command(&config_console_name, &config_console_name_name);
+    static param_t config_console_name_name;
+    init_param(&config_console_name_name, LEAF, 0, config_console_name_handler, 0, STRING, "cons-name", "Name of Console"); 
+    libcli_register_param(&config_console_name, &config_console_name_name);
 }
 
+void
+init_param(param_t *param,                               /* pointer to static param_t variable*/
+        param_type_t param_type,                         /* CMD|LEAF*/
+        char *cmd_name,                                  /* <command name> | NULL*/
+        cmd_callback callback,                           /* Callback field*/
+        user_validation_callback user_validation_cb_fn,  /* NULL | <callback ptr>*/
+        leaf_type_t leaf_type,                           /* INVALID | leaf type*/
+        char *leaf_id,                                   /* NULL, <STRING>*/
+        char *help){                                     /* Help String*/
+
+    int i = 0;
+    if(param_type == CMD){
+        GET_PARAM_CMD(param) = calloc(1, sizeof(cmd_t));
+        param->param_type = CMD;
+        strncpy(GET_CMD_NAME(param), cmd_name, MIN(CMD_NAME_SIZE, strlen(cmd_name)));
+        GET_CMD_NAME(param)[CMD_NAME_SIZE -1] = '\0';
+    }
+    else{
+        GET_PARAM_LEAF(param) = calloc(1, sizeof(leaf_t));
+        param->param_type = LEAF;
+        GET_PARAM_LEAF(param)->leaf_type = leaf_type;
+        param->cmd_type.leaf->user_validation_cb_fn = user_validation_cb_fn;
+        strncpy(GET_PARAM_HELP_STRING(param), help, MIN(PARAM_HELP_STRING_SIZE, strlen(help)));
+        GET_PARAM_HELP_STRING(param)[PARAM_HELP_STRING_SIZE -1] = '\0';
+        strncpy(GET_LEAF_ID(param), leaf_id, MIN(LEAF_ID_SIZE, strlen(leaf_id)));
+        GET_LEAF_ID(param)[LEAF_ID_SIZE -1] = '\0';
+    }
+
+    param->parent = NULL;
+    param->callback = callback;
+    strncpy(GET_PARAM_HELP_STRING(param), help, MIN(PARAM_HELP_STRING_SIZE, strlen(help)));
+
+    for(; i < MAX_OPTION_SIZE; i++){
+        param->options[i] = NULL;
+    }
+}
 
 void
-static_register_command_after_command(cmd_t *parent, cmd_t *child){
-
+libcli_register_param(param_t *parent, param_t *child){
     int i = 0;
     if(!parent)
-        parent = root.cmd_type.cmd;
-
+        parent = &root;
+        
     for(; i < MAX_OPTION_SIZE; i++){
         if(parent->options[i])
             continue;
 
-        parent->options[i] = get_param_from_cmd(child);
-        return;
-    }
-    printf("%s() : Error : No space for new command : %s\n", __FUNCTION__, child->cmd_name);
-}
-
-
-void
-static_register_leaf_after_command(cmd_t *parent, leaf_t *child){
-
-    int i = 0;
-    assert(parent);
-
-    for(; i < MAX_OPTION_SIZE; i++){
-        if(parent->options[i])
-            continue;
-
-        parent->options[i] = get_param_from_leaf(child);
+        parent->options[i] = child;
+        child->parent = parent;
         return;
     }
 
-    printf("%s() : Error : No space for new command : \n", __FUNCTION__);
-
+    printf("%s() : Error : No space for new command\n", __FUNCTION__);
+    assert(0);
 }
-
-void
-static_register_command_after_leaf(leaf_t *parent, cmd_t *child){
-
-    int i = 0;
-    assert(parent);
-
-    for(; i < MAX_OPTION_SIZE; i++){
-        if(parent->options[i])
-            continue;
-
-        parent->options[i] = get_param_from_cmd(child);
-        return;
-    }
-
-    printf("%s() : Error : No space for new command : \n", __FUNCTION__);
-}
-
-cmd_t*
-dynamic_register_command_after_command(cmd_t *parent, 
-                         const char *cmd_name, 
-                         cmd_callback callback){
-
-    int i = 0;
-    cmd_t *child = NULL;
-
-    if(!parent)
-        parent = root.cmd_type.cmd;
-
-    for(; i < MAX_OPTION_SIZE; i++){
-        if(parent->options[i])
-            continue;
-        child = (cmd_t *)calloc(1, sizeof(cmd_t));
-        strncpy(child->cmd_name, cmd_name, CMD_NAME_SIZE -1);
-        child->cmd_name[CMD_NAME_SIZE -1] = '\0';
-        child->callback = callback;
-        parent->options[i] = get_param_from_cmd(child);
-        return child;
-    }
-
-    printf("%s() : Error : No space for new command : %s\n", __FUNCTION__, cmd_name);
-    return NULL;
-}
-
-void
-static_register_leaf_after_leaf(leaf_t *parent, leaf_t *child){
-   
-   int i = 0;
-   assert(parent);
-   
-   for(; i < MAX_OPTION_SIZE; i++){
-       if(parent->options[i])
-           continue;
-           
-       parent->options[i] = get_param_from_leaf(child);
-       return; 
-   }
-
-   printf("%s() : Error : No space for new command : \n", __FUNCTION__);
-}
-    
-
-leaf_t *
-dynamic_register_leaf_after_command(cmd_t *parent, leaf_type_t leaf_type,
-                                    const char *def_leaf_value, cmd_callback callback
-                                    ){
-    
-    int i = 0;
-    leaf_t *child = NULL;
-
-    assert(parent);
-    
-    for(; i < MAX_OPTION_SIZE; i++){
-        if(parent->options[i])
-            continue;
-
-        child = (leaf_t *)calloc(1, sizeof(leaf_t));
-        child->leaf_type = leaf_type;
-        strncpy(child->value_holder, def_leaf_value, 63);
-        child->callback = callback;
-
-        parent->options[i] = get_param_from_leaf(child);
-        return child;
-    }
-
-    printf("%s() : Error : No space for new leaf\n", __FUNCTION__);
-    return NULL;
-}
-
-
-
-leaf_t *
-dynamic_register_leaf_after_leaf(leaf_t *parent, leaf_type_t leaf_type,
-                                 const char *def_leaf_value, cmd_callback callback){
-
-    return NULL;
-}
-
 
 static void
 _dump_one_cmd(param_t *param, unsigned short tabs){
 
     int i = 0;
     cmd_t *cmd = NULL;
-    leaf_t *leaf = NULL;
 
     PRINT_TABS(tabs);
 
@@ -335,29 +212,16 @@ _dump_one_cmd(param_t *param, unsigned short tabs){
         /*Skip dumping the 'no' branch of the cmd tree*/
         if(strncmp(cmd->cmd_name, "no",2) == 0)
             return;
-
-        for(; i < MAX_OPTION_SIZE; i++){
-            if(cmd->options[i]){
-                printf("\n");
-                _dump_one_cmd(cmd->options[i], ++tabs);
-                --tabs;
-            }
-            else
-                break;
-        }
     }
-    else/*If the param is a leaf*/
-    {
-        leaf = GET_PARAM_LEAF(param);
-        for(; i < MAX_OPTION_SIZE; i++){
-            if(leaf->options[i]){
-                printf("\n");
-                _dump_one_cmd(leaf->options[i], ++tabs);
-                --tabs;
-            }
-            else
-                break;
+
+    for(; i < MAX_OPTION_SIZE; i++){
+        if(param->options[i]){
+            printf("\n");
+            _dump_one_cmd(param->options[i], ++tabs);
+            --tabs;
         }
+        else
+            break;
     }
 }
 

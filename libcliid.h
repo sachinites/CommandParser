@@ -31,6 +31,7 @@ typedef enum{
     IPV4,
     FLOAT,
     IPV6,
+    INVALID,
     LEAF_MAX
 } leaf_type_t;
 

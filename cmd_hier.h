@@ -42,19 +42,13 @@ typedef struct _param_t_ param_t;
 
 typedef struct cmd{
     char cmd_name[CMD_NAME_SIZE];
-    cmd_callback callback;
-    char help[CMD_HELP_STRING_SIZE];
-    param_t *options[MAX_OPTION_SIZE];
 } cmd_t;
 
 typedef struct leaf{
     leaf_type_t leaf_type;
     char value_holder[LEAF_VALUE_HOLDER_SIZE];
-    cmd_callback callback;
     user_validation_callback user_validation_cb_fn;
     char leaf_id[LEAF_ID_SIZE];/*Within a single command, it should be unique*/
-    char help[LEAF_HELP_STRING_SIZE];
-    param_t *options[MAX_OPTION_SIZE];
 } leaf_t;
 
 typedef CLI_VAL_RC (*leaf_type_handler)(leaf_t *leaf, char *value_passed);
@@ -72,6 +66,10 @@ typedef union _param_t{
 struct _param_t_{
     param_type_t param_type;
     _param_t cmd_type;
+    cmd_callback callback;
+    char help[PARAM_HELP_STRING_SIZE];
+    param_t *options[MAX_OPTION_SIZE];
+    param_t *parent;
 };
 
 char*
@@ -88,27 +86,22 @@ get_str_leaf_type(leaf_type_t leaf_type);
 #define GET_LEAF_VALUE_PTR(param)   (GET_PARAM_LEAF(param)->value_holder)
 #define GET_LEAF_TYPE(param)        (GET_PARAM_LEAF(param)->leaf_type)
 #define GET_CMD_NAME(param)         (GET_PARAM_CMD(param)->cmd_name)
-#define GET_LEAF_HELP_STRING(param) (GET_PARAM_LEAF(param)->help)
-#define GET_CMD_HELP_STRING(param)  (GET_PARAM_CMD(param)->help)
+#define GET_PARAM_HELP_STRING(param) (param->help)
 #define GET_LEAF_ID(param)          (GET_PARAM_LEAF(param)->leaf_id)
 
 #define IS_LEAF_USER_VALIDATION_CALLBACK_REGISTERED(param)  \
                     (param->cmd_type.leaf->user_validation_cb_fn)
 
-#define IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(param)           \
-        ((IS_PARAM_CMD(param) && param->cmd_type.cmd->callback)     \
-        || (IS_PARAM_LEAF(param) && param->cmd_type.leaf->callback))
+#define IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(param)   (param->callback)
 
 #define _INVOKE_LEAF_USER_VALIDATION_CALLBACK(param, arg) \
                     (param->cmd_type.leaf->user_validation_cb_fn(arg))
+
 #define INVOKE_LEAF_LIB_VALIDATION_CALLBACK(param, arg) \
                     (leaf_handler_array[GET_LEAF_TYPE(param)](GET_PARAM_LEAF(param), arg))
 
 #define INVOKE_APPLICATION_CALLBACK_HANDLER(param, arg, enable_or_disable) \
-    if(IS_PARAM_CMD(param) && param->cmd_type.cmd->callback)               \
-        param->cmd_type.cmd->callback(arg, enable_or_disable);             \
-    else if(IS_PARAM_LEAF(param) && param->cmd_type.leaf->callback)        \
-        param->cmd_type.leaf->callback(arg, enable_or_disable); 
+                    param->callback(arg, enable_or_disable);
                                       
 static inline int
 is_cmd_string_match(param_t *param, const char *str){
@@ -119,12 +112,7 @@ is_cmd_string_match(param_t *param, const char *str){
 
 static inline param_t **
 get_child_array_ptr(param_t *param){
-    if(IS_PARAM_CMD(param)){
-        return &param->cmd_type.cmd->options[0];
-    }
-    else{
-        return &param->cmd_type.leaf->options[0];
-    }
+    return &param->options[0];
 }
 
 static inline int

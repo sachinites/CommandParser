@@ -89,7 +89,6 @@ static tlv_struct_t tlv;
 static int
 build_tlv_buffer(char **tokens, 
                  size_t token_cnt, 
-                 param_t **out_param, 
                  op_mode enable_or_disable){ 
 
     int i = 0; 
@@ -157,44 +156,21 @@ build_tlv_buffer(char **tokens,
         case QUESTION_MARK:
             {
                 i = 0;
-                cmd_t *cmd = NULL;
-                leaf_t *leaf = NULL;
-
-                if(IS_PARAM_CMD(parent))
-                    cmd = GET_PARAM_CMD(parent);
-                else
-                    leaf = GET_PARAM_LEAF(parent);
                 
                 if(IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(parent))
                     printf("<Enter>\n");
 
-                if(cmd){
                     for(; i < MAX_OPTION_SIZE; i++){
-                        if(cmd->options[i]){
-                            if(IS_PARAM_CMD(cmd->options[i])){
-                                printf("nxt cmd  -> %-31s   |   %s\n", GET_CMD_NAME(cmd->options[i]), GET_CMD_HELP_STRING(cmd->options[i]));
+                        if(parent->options[i]){
+                            if(IS_PARAM_CMD(parent->options[i])){
+                                printf("nxt cmd  -> %-31s   |   %s\n", GET_CMD_NAME(parent->options[i]), GET_PARAM_HELP_STRING(parent->options[i]));
                                 continue;
                             }
-                            printf("nxt leaf -> %-32s  |   %s\n", GET_LEAF_TYPE_STR(cmd->options[i]), GET_LEAF_HELP_STRING(cmd->options[i]));
+                            printf("nxt leaf -> %-32s  |   %s\n", GET_LEAF_TYPE_STR(parent->options[i]), GET_PARAM_HELP_STRING(parent->options[i]));
                             continue;
                         }
                         break;
                     }
-                }
-                else{
-                    for(; i < MAX_OPTION_SIZE; i++){
-                        if(leaf->options[i]){
-                            if(IS_PARAM_CMD(leaf->options[i])){
-                                printf("nxt cmd  -> %-31s   |   %s\n", GET_CMD_NAME(leaf->options[i]), GET_CMD_HELP_STRING(leaf->options[i]));
-                                continue;
-                            }
-                            printf("nxt leaf -> %-32s  |   %s\n", GET_LEAF_TYPE_STR(leaf->options[i]), GET_LEAF_HELP_STRING(leaf->options[i]));
-                            continue;
-                        }
-                        break;
-                    }
-
-                }
             } 
             return -1;
         case CMD_NOT_FOUND:
@@ -224,7 +200,6 @@ void
 parse_input_cmd(char *input, unsigned int len){
     
         char** tokens = NULL;
-        param_t *param = NULL;
         size_t token_cnt = 0;
 
         tokens = str_split(input, ' ', &token_cnt);
@@ -233,11 +208,11 @@ parse_input_cmd(char *input, unsigned int len){
 
         /*Walk the cmd tree now and build the TLV buffer of leavf values, if any*/
         if(strncmp(tokens[0], "config", MIN(strlen("config"), strlen(tokens[0]))) == 0)
-            build_tlv_buffer(tokens, token_cnt, &param, CONFIG_ENABLE);
+            build_tlv_buffer(tokens, token_cnt, CONFIG_ENABLE);
         else if((strncmp(tokens[0], "no", 2) == 0))   
-            build_tlv_buffer(tokens, token_cnt, &param, CONFIG_DISABLE);
+            build_tlv_buffer(tokens, token_cnt, CONFIG_DISABLE);
         else 
-            build_tlv_buffer(tokens, token_cnt, &param, OPERATIONAL); 
+            build_tlv_buffer(tokens, token_cnt, OPERATIONAL); 
         free_tokens(tokens);
         reset_serialize_buffer(tlv_buff);
 }

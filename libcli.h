@@ -32,36 +32,29 @@ set_console_name(const char *cons_name);
 /*import functions. These functions to be used to get access to 
  * library global variables - the zero level command hooks */
 
-cmd_t *
+param_t *
 libcli_get_show_hook(void);
 
-cmd_t *
+param_t *
 libcli_get_debug_hook(void);
 
-cmd_t *
+param_t *
 libcli_get_config_hook(void);
 
-/*Command Registration*/
+/*See the definition of this fn to know about arguments*/
 void
-static_register_command_after_command(cmd_t *parent, cmd_t *child);
-void
-static_register_command_after_leaf(leaf_t *parent, cmd_t *child);
-cmd_t *
-dynamic_register_command_after_command(cmd_t *parent, const char *cmd_name, cmd_callback callback);
-cmd_t *
-dynamic_register_command_after_leaf(leaf_t *parent, const char *cmd_name, cmd_callback callback);
+init_param(param_t *param,              
+           param_type_t param_type,     
+           char *cmd_name,              
+           cmd_callback callback,
+           user_validation_callback user_validation_cb_fn,
+           leaf_type_t leaf_type,
+           char *leaf_id,
+           char *help);
 
-/*Leaf registration*/
-void
-static_register_leaf_after_command(cmd_t *parent, leaf_t *child);
-void
-static_register_leaf_after_leaf(leaf_t *parent, leaf_t *child);
-leaf_t *
-dynamic_register_leaf_after_command(cmd_t *parent, leaf_type_t leaf_type,
-                                    const char *def_leaf_value, cmd_callback callback);
-leaf_t *
-dynamic_register_leaf_after_leaf(leaf_t *parent, leaf_type_t leaf_type,
-                                 const char *def_leaf_value, cmd_callback callback);
+void 
+libcli_register_param(param_t *parent, param_t *child);
+
 
 void
 dump_cmd_tree();
