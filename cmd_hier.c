@@ -22,7 +22,7 @@
 #include <assert.h>
 #include "cmdtlv.h"
 #include "libcli.h"
-#include "cmd_hier.h"
+#include "clistd.h"
 
 #define TLV_MAX_BUFFER_SIZE 1048
 
@@ -34,7 +34,6 @@ ser_buff_t *tlv_buff;
 cmd_t show;
 cmd_t debug;
 cmd_t config;
-cmd_t no;
 
 /* Function to be used to get access to above hooks*/
 
@@ -52,8 +51,6 @@ cmd_t *
 libcli_get_config_hook(void){
     return &config;
 }
-
-static cmd_t repeat;
 
 extern char *
 get_last_command();
@@ -77,74 +74,6 @@ get_param_from_leaf(leaf_t *leaf){
     return param;
 }
 
-/*Default validation handlers for Data types*/
-
-static int
-int_validation_handler(leaf_t *leaf, char *value_passed){
-    /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
-                            get_str_leaf_type(leaf->leaf_type), value_passed);*/
-    return 0;
-}
-
-
-static int
-string_validation_handler(leaf_t *leaf, char *value_passed){
-    /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
-                            get_str_leaf_type(leaf->leaf_type), value_passed);*/
-    return 0;
-}
-
-
-static int
-ipv4_validation_handler(leaf_t *leaf, char *value_passed){
-    /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
-                            get_str_leaf_type(leaf->leaf_type), value_passed);*/
-    return 0;
-}
-
-
-static int
-ipv6_validation_handler(leaf_t *leaf, char *value_passed){
-    /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
-                            get_str_leaf_type(leaf->leaf_type), value_passed);*/
-    return 0;
-}
-
-
-static int
-float_validation_handler(leaf_t *leaf, char *value_passed){
-    /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__, 
-                            get_str_leaf_type(leaf->leaf_type), value_passed);*/
-    return 0;
-}
-
-
-/*Default Command Handlers for Default Commands*/
-static int
-config_console_name_handler(ser_buff_t *b, op_mode enable_or_disable){
-    
-    tlv_struct_t *tlv = NULL;
-    int i = 0;
-
-    TLV_LOOP(b, tlv, i){
-        if(enable_or_disable == CONFIG_ENABLE)
-            set_console_name(tlv->value);
-        else
-            set_console_name("router");
-    }
-    return 0;
-}
-
-static int
-repeat_last_command(ser_buff_t *b, op_mode enable_or_disable){
-   static char new_line_consume[2];
-   char *last_cmd = get_last_command();
-   printf("prev : %s", last_cmd);
-   scanf("%c", new_line_consume);;
-   parse_input_cmd(last_cmd, strlen(last_cmd));
-   return 0; 
-}
-
 char*
 get_str_leaf_type(leaf_type_t leaf_type){
 
@@ -159,7 +88,10 @@ get_str_leaf_type(leaf_type_t leaf_type){
             return "FLOAT";
         case IPV6:
             return "IPV6";
-        return "Unknown";
+        case LEAF_MAX:
+            return "LEAF_MAX";
+        default:
+            return "Unknown";
     }
     return NULL;
 }
@@ -173,7 +105,7 @@ init_libcli(){
     strncpy(root.cmd_type.cmd->cmd_name, "ROOT", CMD_NAME_SIZE-1);
     root.cmd_type.cmd->cmd_name[CMD_NAME_SIZE-1] = '\0';
 
-    /*Leavf Validation callbacks registration*/
+    /*Leaf datatypes standard Validation callbacks registration*/
     leaf_handler_array[INT]     = int_validation_handler;
     leaf_handler_array[STRING]  = string_validation_handler;
     leaf_handler_array[IPV4]    = ipv4_validation_handler;
@@ -214,6 +146,7 @@ init_libcli(){
     static_register_command_after_command(0, &config);
 
     /*configure repeat*/
+    static cmd_t repeat;
     memset(&repeat, 0, sizeof(cmd_t));
     strncpy(repeat.cmd_name, "repeat", strlen("repeat"));
     repeat.cmd_name[strlen("repeat")] = '\0';
@@ -222,7 +155,8 @@ init_libcli(){
     repeat.help[strlen(repeat.help)] = '\0';
     static_register_command_after_command(0, &repeat);
 
-    /* no config hook*/
+    /* 'no' hook*/
+    static cmd_t no;
     memset(&no, 0, sizeof(cmd_t));
     strncpy(no.cmd_name, "no", strlen("no"));
     no.cmd_name[strlen("no")] = '\0';
@@ -231,7 +165,7 @@ init_libcli(){
     no.help[strlen(no.help)] = '\0';
     static_register_command_after_command(0, &no);
     
-    /* no config hook*/ 
+    /* 'no config' hook*/ 
     static_register_command_after_command(&no, &config);
     
     /*config console name <new name>*/

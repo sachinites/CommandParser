@@ -22,6 +22,7 @@
 #include <string.h>
 #include <assert.h>
 #include "libcliid.h"
+#include "clistd.h"
 
 /* If you modify the below Macro, pls put 
  * as many zeroes in NULL_OPTIONS expansion as well*/
@@ -56,7 +57,7 @@ typedef struct leaf{
     param_t *options[MAX_OPTION_SIZE];
 } leaf_t;
 
-typedef int (*leaf_type_handler)(leaf_t *leaf, char *value_passed);
+typedef CLI_VAL_RC (*leaf_type_handler)(leaf_t *leaf, char *value_passed);
 
 typedef enum{
     CMD,

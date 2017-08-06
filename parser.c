@@ -115,10 +115,10 @@ build_tlv_buffer(char **tokens,
                 /*If it is a leaf, collect the leaf value and continue to parse. Below function performs
                  * basic standard sanity checks on the leaf value input by the user */ 
 
-                if(INVOKE_LEAF_LIB_VALIDATION_CALLBACK(param, *(tokens +i)) ==0){
+                if(INVOKE_LEAF_LIB_VALIDATION_CALLBACK(param, *(tokens +i)) == VALIDATION_SUCCESS){
 
                     /*Standard librray checks have passed, now call user validation callback function*/
-                    if(INVOKE_LEAF_USER_VALIDATION_CALLBACK(param, *(tokens +i)) == 0){
+                    if(INVOKE_LEAF_USER_VALIDATION_CALLBACK(param, *(tokens +i)) == VALIDATION_SUCCESS){
                         /*Now collect this leaf information into TLV*/
                         prepare_tlv_from_leaf(GET_PARAM_LEAF(param), (&tlv));
                         put_value_in_tlv((&tlv), *(tokens +i));

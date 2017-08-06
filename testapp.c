@@ -63,15 +63,9 @@ user_vlan_validation_callback(char *vlan_id){
     if(vlan_no > 0 && vlan_no < 4096)
         return 0;
 
+    printf("Invalid vlan. Pls follow Help\n");
     return -1;
 }
-
-
-/*Import from library*/
-extern cmd_t show;
-extern cmd_t debug;
-extern cmd_t config;
-
 
 int
 main(int argc, char **argv){
