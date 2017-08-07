@@ -27,7 +27,7 @@ void
 init_libcli();
 
 void
-set_console_name(const char *cons_name);
+set_device_name(const char *cons_name);
 
 /*import functions. These functions to be used to get access to 
  * library global variables - the zero level command hooks */

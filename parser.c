@@ -206,11 +206,15 @@ parse_input_cmd(char *input, unsigned int len){
             return;
 
         /*Walk the cmd tree now and build the TLV buffer of leavf values, if any*/
-        if(strncmp(tokens[0], "config", MIN(strlen("config"), strlen(tokens[0]))) == 0)
-            status = build_tlv_buffer(tokens, token_cnt, CONFIG_ENABLE);
 
-        else if((strncmp(tokens[0], "no", 2) == 0))   
-            status = build_tlv_buffer(tokens, token_cnt, CONFIG_DISABLE);
+        /*Honour the negate command triggered from TOP level or with in condif branch*/
+        if((strncmp(tokens[0], "no", 2) == 0) && token_cnt > 1){ 
+            if((get_current_branch_hook(get_cmd_tree_cursor()) == libcli_get_config_hook())
+                        || (get_cmd_tree_cursor() == &root))
+                status = build_tlv_buffer(&tokens[1], token_cnt -1, CONFIG_DISABLE);
+             else
+                 printf(ANSI_COLOR_YELLOW "Info : Command Negation is supported only for config commands\n" ANSI_COLOR_RESET);
+        }
 
         else if((strncmp(tokens[0], "end", strlen("end")) == 0) && (token_cnt == 1))
             goto_top_of_cmd_tree(get_cmd_tree_cursor());
@@ -218,6 +222,12 @@ parse_input_cmd(char *input, unsigned int len){
         else if((strncmp(tokens[0], "exit", strlen("exit")) == 0) && (token_cnt == 1))
             go_one_level_up_cmd_tree(get_cmd_tree_cursor());
 
+        /* Honour the config command from TOP or from within config branch*/
+        else if((strncmp(tokens[0], "config", MIN(strlen("config"), strlen(tokens[0]))) == 0) ||
+                ((get_cmd_tree_cursor() != &root) && 
+                (get_current_branch_hook(get_cmd_tree_cursor()) == libcli_get_config_hook())))
+            
+                 status = build_tlv_buffer(tokens, token_cnt, CONFIG_ENABLE);
         else 
             status = build_tlv_buffer(tokens, token_cnt, OPERATIONAL); 
 
@@ -251,6 +261,11 @@ command_parser(void){
          
         parse_input_cmd(cons_input_buffer, strlen(cons_input_buffer));
 
+        if(strncmp(cons_input_buffer, "repeat", strlen(cons_input_buffer)) == 0){
+            memset(cons_input_buffer, 0, CONS_INPUT_BUFFER_SIZE);
+            place_console(1);
+            continue;
+        }
         memset(last_command_input_buffer, 0, CONS_INPUT_BUFFER_SIZE);
 
         memcpy(last_command_input_buffer, cons_input_buffer, strlen(cons_input_buffer));

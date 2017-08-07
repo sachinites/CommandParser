@@ -106,6 +106,9 @@ get_str_leaf_type(leaf_type_t leaf_type);
 int
 is_user_in_cmd_mode();
 
+void
+set_console_name(const char *cons_name);
+
 int
 is_param_mode_capable(param_t *param);
 

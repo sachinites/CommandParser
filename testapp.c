@@ -43,7 +43,7 @@ show_ip_igmp_groups_handler(param_t *param, ser_buff_t *tlv_buf, op_mode enable_
 
 int
 config_router_name_handler(param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_disable){
-    set_console_name("router2");
+    set_device_name("router2");
     return 0;
 }
 

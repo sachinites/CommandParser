@@ -79,6 +79,8 @@ is_user_in_cmd_mode(){
 extern char *
 get_last_command();
 
+extern char console_name[TERMINAL_NAME_SIZE];
+
 extern void
 parse_input_cmd(char *input, unsigned int len);
 
@@ -125,7 +127,7 @@ init_libcli(){
     leaf_handler_array[FLOAT]   = float_validation_handler;
 
 
-    set_console_name("router");
+    set_device_name("router");
 
     /*Registering Zero level default command hooks*/
     /*Show hook*/
@@ -195,6 +197,28 @@ init_param(param_t *param,                               /* pointer to static pa
     for(; i < MAX_OPTION_SIZE; i++){
         param->options[i] = NULL;
     }
+}
+
+void
+set_device_name(const char *cons_name){
+    
+    char** tokens = NULL;
+    size_t token_cnt = 0;    
+
+    assert(cons_name);
+
+    if(strlen(console_name))
+        tokens = str_split(console_name, '>', &token_cnt);
+    
+    sprintf(console_name, "%s>", cons_name);
+    
+    if(token_cnt > 1){
+        strcat(console_name, " ");
+        strcat(console_name, tokens[1]);
+    }
+
+    if(tokens)
+        free_tokens(tokens);
 }
 
 int
@@ -313,7 +337,6 @@ start_shell(void){
     command_parser();
 }
 
-extern char console_name[TERMINAL_NAME_SIZE];
 
 void
 set_console_name(const char *cons_name){

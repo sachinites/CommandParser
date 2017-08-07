@@ -19,9 +19,7 @@
 #include "cmd_hier.h"
 #include "clistd.h"
 #include "cmdtlv.h"
-
-extern void
-set_console_name(const char *cons_name);
+#include "libcli.h"
 
 extern void
 parse_input_cmd(char *input, unsigned int len);
@@ -72,6 +70,7 @@ float_validation_handler(leaf_t *leaf, char *value_passed){
 
 /* Default command handlers */
 /*config console name <cons name>*/
+extern char console_name[TERMINAL_NAME_SIZE];
 
  int
 config_console_name_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
@@ -81,9 +80,13 @@ config_console_name_handler(param_t *param, ser_buff_t *b, op_mode enable_or_dis
 
     TLV_LOOP(b, tlv, i){
         if(enable_or_disable == CONFIG_ENABLE)
-            set_console_name(tlv->value);
-        else
-            set_console_name("router");
+            set_device_name(tlv->value);
+        else{
+            if(strncmp(tlv->value, console_name, strlen(tlv->value)) == 0)
+                set_device_name("router");
+            else
+                printf("Error : Incorrect device name\n");
+        }
     }
     return 0;
 }
