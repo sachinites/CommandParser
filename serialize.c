@@ -10,6 +10,7 @@ init_serialized_buffer(ser_buff_t **b){
     (*b)->b = calloc(1, SERIALIZE_BUFFER_DEFAULT_SIZE);
     (*b)->size = SERIALIZE_BUFFER_DEFAULT_SIZE;
     (*b)->next = 0;
+    (*b)->checkpoint = 0;
     return;
 }
 
@@ -19,6 +20,7 @@ init_serialized_buffer_of_defined_size(ser_buff_t **b, int size){
     (*b)->b = calloc(1, size);
     (*b)->size = size;
     (*b)->next = 0;
+    (*b)->checkpoint = 0;
 }
 
 
@@ -66,6 +68,19 @@ serialize_buffer_skip(ser_buff_t *b, int size){
 	b->next += size;
 }
 
+void 
+restore_checkpoint_serialize_buffer(ser_buff_t *b){
+    
+    if(!b) assert(0);
+    b->next = b->checkpoint;
+}
+
+void 
+mark_checkpoint_serialize_buffer(ser_buff_t *b){
+
+    if(!b) assert(0);
+    b->checkpoint = b->next;
+}
 
 
 void serialize_int(ser_buff_t *b, int data){
@@ -326,4 +341,5 @@ void copy_in_serialized_buffer_by_offset(ser_buff_t *b, int size, char *value, i
 
 void reset_serialize_buffer(ser_buff_t *b){
 	b->next = 0;	
+    b->checkpoint = 0;
 }

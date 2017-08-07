@@ -20,10 +20,11 @@
 #define __LIBCLICONSTANTS__
 
 #define CMD_NAME_SIZE           32
-#define LEAF_VALUE_HOLDER_SIZE  64
+#define MAX_CMD_TREE_DEPTH      16
+#define LEAF_VALUE_HOLDER_SIZE  64/* It should be atleast CMD_NAME_SIZE*/
 #define LEAF_ID_SIZE            32
 #define PARAM_HELP_STRING_SIZE  64
-#define TERMINAL_NAME_SIZE      32
 #define CONS_INPUT_BUFFER_SIZE  2048
-
+#define TERMINAL_NAME_SIZE      CONS_INPUT_BUFFER_SIZE
+#define TLV_MAX_BUFFER_SIZE     1048
 #endif /* __LIBCLICONSTANTS__ */

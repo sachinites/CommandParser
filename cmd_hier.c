@@ -23,12 +23,13 @@
 #include "cmdtlv.h"
 #include "libcli.h"
 #include "clistd.h"
-
-#define TLV_MAX_BUFFER_SIZE 1048
+#include "string_util.h"
+#include "css.h"
 
 param_t root;
 leaf_type_handler leaf_handler_array[LEAF_MAX];
 ser_buff_t *tlv_buff;
+param_t *cmd_tree_cursor = NULL;
 
 /*Default zero level commands hooks. */
 param_t show;
@@ -52,11 +53,37 @@ libcli_get_config_hook(void){
     return &config;
 }
 
+/* Cursor functions*/
+void
+reset_cmd_tree_cursor(){
+    cmd_tree_cursor = &root;
+    reset_serialize_buffer(tlv_buff);
+}
+
+void
+set_cmd_tree_cursor(param_t *param){
+    assert(param);
+    cmd_tree_cursor = param;
+}
+
+param_t *
+get_cmd_tree_cursor(){
+    return cmd_tree_cursor;
+}
+
+int
+is_user_in_cmd_mode(){
+        return (get_cmd_tree_cursor() != &root);
+}
+
 extern char *
 get_last_command();
 
 extern void
 parse_input_cmd(char *input, unsigned int len);
+
+extern void
+place_console(char new_line);
 
 char*
 get_str_leaf_type(leaf_type_t leaf_type){
@@ -84,6 +111,11 @@ void
 init_libcli(){
 
     init_param(&root, CMD, "ROOT", 0, 0, INVALID, 0, "ROOT");
+    
+    /*Intialised serialized buffer to collect leaf values in TLV format*/
+    init_serialized_buffer_of_defined_size(&tlv_buff, TLV_MAX_BUFFER_SIZE);
+
+    reset_cmd_tree_cursor();
 
     /*Leaf datatypes standard Validation callbacks registration*/
     leaf_handler_array[INT]     = int_validation_handler;
@@ -92,8 +124,6 @@ init_libcli(){
     leaf_handler_array[IPV6]    = ipv6_validation_handler;
     leaf_handler_array[FLOAT]   = float_validation_handler;
 
-    /*Intialised serialized buffer to collect leaf values in TLV format*/
-    init_serialized_buffer_of_defined_size(&tlv_buff, TLV_MAX_BUFFER_SIZE);
 
     set_console_name("router");
 
@@ -114,14 +144,6 @@ init_libcli(){
     static param_t repeat;
     init_param(&repeat, CMD, "repeat", repeat_last_command, 0, INVALID, 0, "repeat");
     libcli_register_param(&root, &repeat);
-    
-    /* 'no' hook*/
-    static param_t no;
-    init_param(&no, CMD, "no", 0, 0, INVALID, 0, "command negation");
-    libcli_register_param(&root, &no);
-    
-    /* 'no config' hook*/
-    libcli_register_param(&no, &config); 
     
     /*config console name <new name>*/
     static param_t config_console;
@@ -175,6 +197,54 @@ init_param(param_t *param,                               /* pointer to static pa
     }
 }
 
+int
+is_param_mode_capable(param_t *param){
+
+    int i = 0;
+    assert(param);
+
+    if(param == &root)
+        return -1;
+
+    if(param->options[0] == NULL)
+        return -1;
+          
+    for(; i < MAX_OPTION_SIZE; i++){
+
+        if(IS_PARAM_LEAF(param->options[i]))
+            continue;
+
+        if(strncmp(GET_CMD_NAME(param->options[i]), "*", 1) == 0)
+            return 0;
+
+    }
+    return -1;
+}
+
+int
+insert_moding_capability(param_t *param){
+
+    assert(param);
+    if(param == &root)
+        return -1;
+    /*Do not insert mode capability in mode param itself,
+     * avoid chicken and egg problem here. Also, negate commands
+     * are also should not be mode capable*/
+
+    if(is_mode_exception_cmd(param) == 0)
+        return -1;
+
+    /*Bail if param is already mode capable*/
+    if(is_param_mode_capable(param) == 0)
+        return -1;
+
+    param_t * mode_param = calloc(1, sizeof(param_t));
+    init_param(mode_param, CMD, "*", mode_enter_callback , 0, INVALID, 0, "ENTER MODE");
+    param->options[0] = mode_param;
+    mode_param->parent = param;
+    return 0;
+}
+
 void
 libcli_register_param(param_t *parent, param_t *child){
     int i = 0;
@@ -185,6 +255,10 @@ libcli_register_param(param_t *parent, param_t *child){
         if(parent->options[i])
             continue;
 
+        if(insert_moding_capability(parent) == 0){
+            i++;
+            assert(i != MAX_OPTION_SIZE);
+        }
         parent->options[i] = child;
         child->parent = parent;
         return;
@@ -198,21 +272,22 @@ static void
 _dump_one_cmd(param_t *param, unsigned short tabs){
 
     int i = 0;
-    cmd_t *cmd = NULL;
+
+    if(IS_PARAM_CMD(param)){
+        /*Skip dumping the 'no' branch of the cmd tree*/
+        if(strncmp(GET_CMD_NAME(param), "no",2) == 0)
+            return;
+    }
 
     PRINT_TABS(tabs);
 
-    if(IS_PARAM_CMD(param))
+    if(IS_PARAM_CMD(param)){
+        /*if(strncmp(GET_CMD_NAME(param), "*", 1) == 0)
+            return;*/
         printf("-->%s(%d)", GET_PARAM_CMD(param)->cmd_name, tabs);
+    }
     else
         printf("-->%s(%d)", GET_LEAF_TYPE_STR(param), tabs);
-
-    if(IS_PARAM_CMD(param)){
-        cmd = GET_PARAM_CMD(param);
-        /*Skip dumping the 'no' branch of the cmd tree*/
-        if(strncmp(cmd->cmd_name, "no",2) == 0)
-            return;
-    }
 
     for(; i < MAX_OPTION_SIZE; i++){
         if(param->options[i]){
@@ -228,7 +303,6 @@ _dump_one_cmd(param_t *param, unsigned short tabs){
 void
 dump_cmd_tree(){
     _dump_one_cmd(&root, 0);
-    printf("\n");
 }
 
 extern 
@@ -243,6 +317,126 @@ extern char console_name[TERMINAL_NAME_SIZE];
 
 void
 set_console_name(const char *cons_name){
-    strncpy(console_name, cons_name, TERMINAL_NAME_SIZE);
+    sprintf(console_name, "%s>", cons_name);
     console_name[TERMINAL_NAME_SIZE -1] = '\0';    
+}
+
+/* Command Mode implementation */
+
+param_t*
+get_current_branch_hook(param_t *current_param){
+    assert(current_param);
+    assert(current_param != &root);
+    while(current_param->parent != &root){
+        current_param = current_param->parent;
+    }
+    return current_param;;
+}
+
+
+/*-----------------------------------------------------------------------------
+ *  This fn resets the current cmd tree cursor to root and flush the leaf value 
+ *  present in the branch of tree from root to curr_cmd_tree_cursor
+ *-----------------------------------------------------------------------------*/
+void
+goto_top_of_cmd_tree(param_t *curr_cmd_tree_cursor){
+
+    char** tokens = NULL;
+    size_t token_cnt = 0;
+
+    assert(curr_cmd_tree_cursor);
+    
+    if(curr_cmd_tree_cursor == &root){
+        printf(ANSI_COLOR_BLUE "Info : At Roof top Already\n" ANSI_COLOR_RESET);
+        return;
+    }
+
+    do{
+        if(IS_PARAM_CMD(curr_cmd_tree_cursor)){
+            curr_cmd_tree_cursor = curr_cmd_tree_cursor->parent;
+            continue;
+        }
+        memset(GET_LEAF_VALUE_PTR(curr_cmd_tree_cursor), 0, LEAF_VALUE_HOLDER_SIZE);
+        curr_cmd_tree_cursor = curr_cmd_tree_cursor->parent;
+    } while(curr_cmd_tree_cursor != &root);
+    
+    reset_cmd_tree_cursor();
+    tokens = str_split(console_name, '>', &token_cnt);
+    sprintf(console_name, "%s>", tokens[0]);
+}
+
+void
+go_one_level_up_cmd_tree(param_t *curr_cmd_tree_cursor){
+
+    char** tokens = NULL;
+    size_t token_cnt = 0;
+
+    assert(curr_cmd_tree_cursor);
+
+    if(curr_cmd_tree_cursor == &root){
+        printf(ANSI_COLOR_BLUE "Info : At Roof top Already\n" ANSI_COLOR_RESET);
+        return;
+    }
+
+    if(IS_PARAM_LEAF(curr_cmd_tree_cursor)){
+        memset(GET_LEAF_VALUE_PTR(curr_cmd_tree_cursor), 0, LEAF_VALUE_HOLDER_SIZE);
+        serialize_buffer_skip(tlv_buff, -1 * sizeof(tlv_struct_t));/*Rewind*/
+        mark_checkpoint_serialize_buffer(tlv_buff);
+    }
+
+     set_cmd_tree_cursor(curr_cmd_tree_cursor->parent);
+
+     if(get_cmd_tree_cursor() == &root){
+        tokens = str_split(console_name, '>', &token_cnt);
+        sprintf(console_name, "%s>", tokens[0]);
+        reset_serialize_buffer(tlv_buff);
+        return;
+     }
+    
+     build_mode_console_name(get_cmd_tree_cursor());
+}
+
+
+/*-----------------------------------------------------------------------------
+ *  Build new console name when entered into MODE from root to dst_parm(incl)
+ *-----------------------------------------------------------------------------*/
+void
+build_mode_console_name(param_t *dst_param){
+
+    assert(dst_param);
+    assert(dst_param != &root);/*This fn should not be called for root*/
+
+    int i = MAX_CMD_TREE_DEPTH -1;
+    size_t token_cnt = 0;
+    
+    char** tokens = NULL;
+    char *append_string = NULL;
+
+    static char cmd_names[MAX_CMD_TREE_DEPTH][LEAF_VALUE_HOLDER_SIZE];
+    char *admin_set_console_name = NULL;
+
+    tokens = str_split(console_name, '>', &token_cnt);
+    admin_set_console_name = tokens[0];
+    sprintf(console_name, "%s> ", admin_set_console_name);
+    free_tokens(tokens);
+    
+    do{
+        assert(i != -1); 
+        if(IS_PARAM_CMD(dst_param))
+            append_string = GET_CMD_NAME(dst_param);
+        else
+            append_string = GET_LEAF_VALUE_PTR(dst_param);
+
+        strncpy(cmd_names[i], append_string, strlen(append_string));
+        i--;
+        dst_param = dst_param->parent;
+    }while(dst_param != &root);
+
+    for(i = i+1; i < MAX_CMD_TREE_DEPTH -1; i++){
+        strcat(console_name, cmd_names[i]);
+        strcat(console_name, "-");
+    }
+
+    strcat(console_name, cmd_names[i]);
+    memset(cmd_names, 0, MAX_CMD_TREE_DEPTH * LEAF_VALUE_HOLDER_SIZE);
 }

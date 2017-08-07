@@ -16,12 +16,14 @@
  * =====================================================================================
  */
 
-#ifndef __CLIVALIDATE__ 
-#define __CLIVALIDATE__
+#ifndef __CLISTD__ 
+#define __CLISTD__
 
 #include "libcliid.h"
 
 typedef struct leaf leaf_t;
+typedef struct _param_t_ param_t;
+
 typedef struct serialized_buffer ser_buff_t;
 
 typedef enum{
@@ -48,10 +50,12 @@ float_validation_handler(leaf_t *leaf, char *value_passed);
 
 /* Default command handlers */
 int
-config_console_name_handler(ser_buff_t *b, op_mode enable_or_disable);
+config_console_name_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable);
 
 int
-repeat_last_command(ser_buff_t *b, op_mode enable_or_disable);
+repeat_last_command(param_t *param, ser_buff_t *b, op_mode enable_or_disable);
 
+int
+mode_enter_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable);
 
-#endif /* __CLIVALIDATE__ */
+#endif /* __CLISTD__ */

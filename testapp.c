@@ -21,7 +21,7 @@
 #include <stdlib.h>
 
 int
-show_ip_igmp_groups_handler(ser_buff_t *tlv_buf, op_mode enable_or_disable){
+show_ip_igmp_groups_handler(param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_disable){
 
     tlv_struct_t *tlv = NULL;   
     int i = 0;
@@ -42,14 +42,14 @@ show_ip_igmp_groups_handler(ser_buff_t *tlv_buf, op_mode enable_or_disable){
 }
 
 int
-config_router_name_handler(ser_buff_t *tlv_buf, op_mode enable_or_disable){
+config_router_name_handler(param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_disable){
     set_console_name("router2");
     return 0;
 }
 
 
 int
-show_cmd_tree(ser_buff_t *tlv_buf, op_mode enable_or_disable){
+show_cmd_tree(param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_disable){
         
     dump_cmd_tree();
     return 0;

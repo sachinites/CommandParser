@@ -74,7 +74,7 @@ float_validation_handler(leaf_t *leaf, char *value_passed){
 /*config console name <cons name>*/
 
  int
-config_console_name_handler(ser_buff_t *b, op_mode enable_or_disable){
+config_console_name_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
 
     tlv_struct_t *tlv = NULL;
     int i = 0;
@@ -88,11 +88,9 @@ config_console_name_handler(ser_buff_t *b, op_mode enable_or_disable){
     return 0;
 }
 
-
-
 /*repeat*/
  int
-repeat_last_command(ser_buff_t *b, op_mode enable_or_disable){
+repeat_last_command(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
     static char new_line_consume[2];
     char *last_cmd = get_last_command();
     printf("prev : %s", last_cmd);
@@ -102,4 +100,12 @@ repeat_last_command(ser_buff_t *b, op_mode enable_or_disable){
 }
 
 
+ int
+mode_enter_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
+    
+    set_cmd_tree_cursor(param->parent);
+    build_mode_console_name(param->parent);
+    mark_checkpoint_serialize_buffer(b);
+    return 0;
+}
 

@@ -21,6 +21,7 @@
 #include <assert.h>
 #include "cliconst.h"
 #include <ctype.h>
+#include <stdio.h>
 
 static char a_str[CONS_INPUT_BUFFER_SIZE];
 
@@ -114,6 +115,17 @@ free_tokens(char **tokens){
     for ( ;*(tokens + i); i++)
     {
         free(*(tokens + i));
+    }
+    free(tokens);
+}
+
+
+void
+print_tokens(char **tokens){
+    int i = 0;
+    for ( ;*(tokens + i); i++)
+    {
+        printf("%d. %s\n", i, (*(tokens + i)));
     }
     free(tokens);
 }

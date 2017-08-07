@@ -34,7 +34,7 @@
 #include "cliconst.h"
 
 typedef struct serialized_buffer ser_buff_t;
-typedef int (*cmd_callback)(ser_buff_t *tlv_buf, op_mode enable_or_diable);
+typedef int (*cmd_callback)(param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_diable);
 typedef int (*user_validation_callback)(char *leaf_value);
 
 
@@ -101,8 +101,14 @@ get_str_leaf_type(leaf_type_t leaf_type);
                     (leaf_handler_array[GET_LEAF_TYPE(param)](GET_PARAM_LEAF(param), arg))
 
 #define INVOKE_APPLICATION_CALLBACK_HANDLER(param, arg, enable_or_disable) \
-                    param->callback(arg, enable_or_disable);
-                                      
+                    param->callback(param, arg, enable_or_disable);
+
+int
+is_user_in_cmd_mode();
+
+int
+is_param_mode_capable(param_t *param);
+
 static inline int
 is_cmd_string_match(param_t *param, const char *str){
     return (strncmp(param->cmd_type.cmd->cmd_name, 
@@ -128,6 +134,22 @@ INVOKE_LEAF_USER_VALIDATION_CALLBACK(param_t *param, char *leaf_value) {
     return _INVOKE_LEAF_USER_VALIDATION_CALLBACK(param, leaf_value);
 }
 
+static inline int
+is_mode_exception_cmd(param_t *param){
+
+    if(IS_PARAM_LEAF(param))
+        return -1;
+
+/*Add more cases here if more non-mode supported command
+ * are to be configured*/
+    if((strncmp(GET_CMD_NAME(param), "*",  1) == 0) ||
+       (strncmp(GET_CMD_NAME(param), "no", 2) == 0))
+        return 0;
+
+    return -1;
+}
+
+
 #define PRINT_TABS(n)     \
 do{                       \
    unsigned short _i = 0; \
@@ -135,5 +157,29 @@ do{                       \
        printf("  ");      \
 } while(0);
 
+/*Command Mode implementation*/
 
+param_t *
+get_current_branch_hook(param_t *current_param);
+
+void
+reset_cmd_tree_cursor();
+
+void
+goto_top_of_cmd_tree(param_t *curr_cmd_tree_cursor);
+
+void
+go_one_level_up_cmd_tree(param_t *curr_cmd_tree_cursor);
+
+void
+set_cmd_tree_cursor(param_t *param);
+
+param_t *
+get_cmd_tree_cursor();
+
+int
+insert_moding_capability(param_t *param);
+
+void
+build_mode_console_name(param_t *dst_param);
 #endif

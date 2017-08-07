@@ -28,12 +28,11 @@ extern leaf_type_handler leaf_handler_array[LEAF_MAX];
 extern ser_buff_t *tlv_buff;
 char console_name[TERMINAL_NAME_SIZE];
 
-
-static void
+void
 place_console(char new_line){
     if(new_line)
         printf("\n");
-    printf("%s> ", console_name);
+    printf("%s $ ", console_name);
 }
 
 static char cons_input_buffer[CONS_INPUT_BUFFER_SIZE];
@@ -49,7 +48,6 @@ typedef enum{
     QUESTION_MARK,
     INCOMPLETE_COMMAND,
     MULTIPLE_MATCHING_COMMANDS,
-    CMD_MODE_ENTER,
     UNKNOWN
 } CMD_PARSE_STATUS;
 
@@ -94,7 +92,7 @@ build_tlv_buffer(char **tokens,
                  op_mode enable_or_disable){ 
 
     int i = 0; 
-    param_t *param = &root;
+    param_t *param = get_cmd_tree_cursor();
     param_t *parent = NULL;
     CMD_PARSE_STATUS status = COMPLETE;
     memset(&tlv, 0, sizeof(tlv_struct_t));
@@ -110,12 +108,9 @@ build_tlv_buffer(char **tokens,
 
         if(param){
             if(IS_PARAM_LEAF(param)){
-                /*printf("token[%d] = %s Not found in cmd tree, leaf = %s\n", 
-                  i, *(tokens +i), GET_LEAF_TYPE_STR(param));*/
 
                 /*If it is a leaf, collect the leaf value and continue to parse. Below function performs
                  * basic standard sanity checks on the leaf value input by the user */ 
-
                 if(INVOKE_LEAF_LIB_VALIDATION_CALLBACK(param, *(tokens +i)) == VALIDATION_SUCCESS){
 
                     /*Standard librray checks have passed, now call user validation callback function*/
@@ -123,6 +118,8 @@ build_tlv_buffer(char **tokens,
                         /*Now collect this leaf information into TLV*/
                         prepare_tlv_from_leaf(GET_PARAM_LEAF(param), (&tlv));
                         put_value_in_tlv((&tlv), *(tokens +i));
+                        strncpy(GET_LEAF_VALUE_PTR(param), *(tokens +i), MIN(strlen(*(tokens +i)), LEAF_VALUE_HOLDER_SIZE));
+                        GET_LEAF_VALUE_PTR(param)[strlen(*(tokens +i))] = '\0';
                         collect_tlv(tlv_buff, &tlv);
                         memset(&tlv, 0, sizeof(tlv_struct_t));
                         continue;
@@ -177,7 +174,7 @@ build_tlv_buffer(char **tokens,
             break;
         case CMD_NOT_FOUND:
             printf(ANSI_COLOR_RED "Error : Following Token not registered : %s\n" ANSI_COLOR_RESET, *(tokens +i));
-            return -1;
+            break;
         case INVALID_LEAF:
             printf(ANSI_COLOR_RED "Error : Following leaf value could not be validated : %s, Expected Data type = %s\n" ANSI_COLOR_RESET, *(tokens +i), GET_LEAF_TYPE_STR(param));
             break;
@@ -190,8 +187,6 @@ build_tlv_buffer(char **tokens,
             break;
         case INCOMPLETE_COMMAND:
             printf(ANSI_COLOR_YELLOW "Error : Incomplete Command\n" ANSI_COLOR_RESET);
-            break;
-        case CMD_MODE_ENTER:
             break;
         default:
             printf(ANSI_COLOR_RED "FATAL : Unknown case fall\n" ANSI_COLOR_RESET);
@@ -213,13 +208,25 @@ parse_input_cmd(char *input, unsigned int len){
         /*Walk the cmd tree now and build the TLV buffer of leavf values, if any*/
         if(strncmp(tokens[0], "config", MIN(strlen("config"), strlen(tokens[0]))) == 0)
             status = build_tlv_buffer(tokens, token_cnt, CONFIG_ENABLE);
+
         else if((strncmp(tokens[0], "no", 2) == 0))   
             status = build_tlv_buffer(tokens, token_cnt, CONFIG_DISABLE);
+
+        else if((strncmp(tokens[0], "end", strlen("end")) == 0) && (token_cnt == 1))
+            goto_top_of_cmd_tree(get_cmd_tree_cursor());
+
+        else if((strncmp(tokens[0], "exit", strlen("exit")) == 0) && (token_cnt == 1))
+            go_one_level_up_cmd_tree(get_cmd_tree_cursor());
+
         else 
             status = build_tlv_buffer(tokens, token_cnt, OPERATIONAL); 
+
         free_tokens(tokens);
 
-        reset_serialize_buffer(tlv_buff);
+        if(is_user_in_cmd_mode())
+            restore_checkpoint_serialize_buffer(tlv_buff);
+        else
+            reset_serialize_buffer(tlv_buff);
 }
 
 
