@@ -21,6 +21,7 @@
 #include "string_util.h"
 #include "cmdtlv.h"
 #include "cliconst.h"
+#include "css.h"
 
 extern param_t root;
 extern leaf_type_handler leaf_handler_array[LEAF_MAX];
@@ -48,6 +49,7 @@ typedef enum{
     QUESTION_MARK,
     INCOMPLETE_COMMAND,
     MULTIPLE_MATCHING_COMMANDS,
+    CMD_MODE_ENTER,
     UNKNOWN
 } CMD_PARSE_STATUS;
 
@@ -86,7 +88,7 @@ find_matching_param(param_t **options, const char *cmd_name){
 
 static tlv_struct_t tlv;
 
-static int
+static CMD_PARSE_STATUS
 build_tlv_buffer(char **tokens, 
                  size_t token_cnt, 
                  op_mode enable_or_disable){ 
@@ -163,37 +165,38 @@ build_tlv_buffer(char **tokens,
                     for(; i < MAX_OPTION_SIZE; i++){
                         if(parent->options[i]){
                             if(IS_PARAM_CMD(parent->options[i])){
-                                printf("nxt cmd  -> %-31s   |   %s\n", GET_CMD_NAME(parent->options[i]), GET_PARAM_HELP_STRING(parent->options[i]));
+                                printf(ANSI_COLOR_MAGENTA "nxt cmd  -> %-31s   |   %s\n" ANSI_COLOR_RESET, GET_CMD_NAME(parent->options[i]), GET_PARAM_HELP_STRING(parent->options[i]));
                                 continue;
                             }
-                            printf("nxt leaf -> %-32s  |   %s\n", GET_LEAF_TYPE_STR(parent->options[i]), GET_PARAM_HELP_STRING(parent->options[i]));
+                            printf(ANSI_COLOR_CYAN "nxt leaf -> %-32s  |   %s\n" ANSI_COLOR_RESET, GET_LEAF_TYPE_STR(parent->options[i]), GET_PARAM_HELP_STRING(parent->options[i]));
                             continue;
                         }
                         break;
                     }
             } 
-            return -1;
+            break;
         case CMD_NOT_FOUND:
-            printf("Error : Following Token not registered : %s\n", *(tokens +i));
+            printf(ANSI_COLOR_RED "Error : Following Token not registered : %s\n" ANSI_COLOR_RESET, *(tokens +i));
             return -1;
         case INVALID_LEAF:
-            printf("Error : Following leaf value could not be validated : %s, Expected Data type = %s\n", 
-                    *(tokens +i), GET_LEAF_TYPE_STR(param));
-            return -1;
+            printf(ANSI_COLOR_RED "Error : Following leaf value could not be validated : %s, Expected Data type = %s\n" ANSI_COLOR_RESET, *(tokens +i), GET_LEAF_TYPE_STR(param));
+            break;
         case COMPLETE:
-            printf("Parse Success.\n");
+            printf(ANSI_COLOR_GREEN "Parse Success.\n" ANSI_COLOR_RESET);
             INVOKE_APPLICATION_CALLBACK_HANDLER(param, tlv_buff, enable_or_disable);
             break;
         case USER_INVALID_LEAF:
-            printf("Error : User validation has failed\n");
-            return -1;
+            printf(ANSI_COLOR_YELLOW "Error : User validation has failed\n" ANSI_COLOR_RESET);
+            break;
         case INCOMPLETE_COMMAND:
-            printf("Error : Incomplete Command\n");
-            return -1;
+            printf(ANSI_COLOR_YELLOW "Error : Incomplete Command\n" ANSI_COLOR_RESET);
+            break;
+        case CMD_MODE_ENTER:
+            break;
         default:
-            printf("FATAL : Unknown case fall\n");
+            printf(ANSI_COLOR_RED "FATAL : Unknown case fall\n" ANSI_COLOR_RESET);
     }
-    return 0;
+    return status;;
 }
 
 void
@@ -201,19 +204,21 @@ parse_input_cmd(char *input, unsigned int len){
     
         char** tokens = NULL;
         size_t token_cnt = 0;
-
+        CMD_PARSE_STATUS status = COMPLETE;
+         
         tokens = str_split(input, ' ', &token_cnt);
         if(!tokens)
             return;
 
         /*Walk the cmd tree now and build the TLV buffer of leavf values, if any*/
         if(strncmp(tokens[0], "config", MIN(strlen("config"), strlen(tokens[0]))) == 0)
-            build_tlv_buffer(tokens, token_cnt, CONFIG_ENABLE);
+            status = build_tlv_buffer(tokens, token_cnt, CONFIG_ENABLE);
         else if((strncmp(tokens[0], "no", 2) == 0))   
-            build_tlv_buffer(tokens, token_cnt, CONFIG_DISABLE);
+            status = build_tlv_buffer(tokens, token_cnt, CONFIG_DISABLE);
         else 
-            build_tlv_buffer(tokens, token_cnt, OPERATIONAL); 
+            status = build_tlv_buffer(tokens, token_cnt, OPERATIONAL); 
         free_tokens(tokens);
+
         reset_serialize_buffer(tlv_buff);
 }
 

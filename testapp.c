@@ -138,7 +138,7 @@ main(int argc, char **argv){
 
     /*level 6*/
     static param_t show_ip_igmp_groups_group_ip_vlan;
-    init_param(&show_ip_igmp_groups_group_ip_vlan, CMD, "vlan", show_ip_igmp_groups_handler, 0, INVALID, 0, "Vlan");
+    init_param(&show_ip_igmp_groups_group_ip_vlan, CMD, "vlan", 0, 0, INVALID, 0, "Vlan");
     libcli_register_param(&show_ip_igmp_groups_group_ip, &show_ip_igmp_groups_group_ip_vlan);
 
     /*level 7*/
