@@ -367,8 +367,8 @@ void  enhanced_command_parser(void);
 
 void
 start_shell(void){
-    //command_parser();
-    enhanced_command_parser();
+    command_parser();
+    //enhanced_command_parser();
 }
 
 
