@@ -185,4 +185,11 @@ insert_moding_capability(param_t *param);
 
 void
 build_mode_console_name(param_t *dst_param);
+
+/*Source and Destination command MUST be in the same branch AND
+ * Source must be at higher level as compared to Destination*/
+void
+build_cmd_tree_leaves_data(ser_buff_t *tlv_buff,/*Output serialize buffer*/ 
+                            param_t *src_param, /*Source command*/
+                            param_t *dst_param);/*Destination command*/
 #endif

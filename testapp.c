@@ -158,7 +158,7 @@ main(int argc, char **argv){
     /*mtrace command implementation*/
     static param_t mtrace;
     init_param(&mtrace, CMD, "mtrace", 0, 0, INVALID, 0, "mtrace command");
-    libcli_register_param(0, &mtrace);
+    libcli_register_param(config, &mtrace);
 
     static param_t source;
     init_param(&source, CMD, "source", 0, 0, INVALID, 0, "source command");

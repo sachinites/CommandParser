@@ -81,4 +81,12 @@ dump_tlv_serialized_buffer(ser_buff_t *tlv_ser_buff){
     }
 }
 
+static inline void
+swap_tlv_units(tlv_struct_t *tlv1, tlv_struct_t *tlv2){
+    
+    tlv_struct_t tlv;
+    tlv = *tlv1;
+    *tlv1 = *tlv2;
+    *tlv2 = tlv;
+}
 #endif /* __CMDTLV__H */

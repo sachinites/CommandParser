@@ -475,3 +475,55 @@ build_mode_console_name(param_t *dst_param){
     strcat(console_name, cmd_names[i]);
     memset(cmd_names, 0, MAX_CMD_TREE_DEPTH * LEAF_VALUE_HOLDER_SIZE);
 }
+
+/*Source and Destination command MUST be in the same branch AND
+ *  * Source must be at higher level as compared to Destination*/
+void
+build_cmd_tree_leaves_data(ser_buff_t *tlv_buff,/*Output serialize buffer*/
+        param_t *src_param, /*Source command*/
+        param_t *dst_param){/*Destination command*/
+
+    assert(tlv_buff);
+    assert(src_param);
+    assert(dst_param);
+
+    tlv_struct_t tlv, *tlv_temp = NULL;
+    unsigned int tlv_units = 0, i = 0, j = 0;
+
+    memset(&tlv, 0, sizeof(tlv_struct_t));
+    reset_serialize_buffer(tlv_buff);
+
+    while(dst_param != src_param){
+        if(IS_PARAM_CMD(dst_param)){
+            dst_param = dst_param->parent;
+            continue;
+        }
+
+        prepare_tlv_from_leaf(GET_PARAM_LEAF(dst_param), (&tlv));
+        put_value_in_tlv((&tlv), GET_LEAF_VALUE_PTR(dst_param)); 
+        collect_tlv(tlv_buff, &tlv);
+        memset(&tlv, 0, sizeof(tlv_struct_t));
+
+        dst_param = dst_param->parent;
+    }
+
+    if(IS_PARAM_LEAF(dst_param)){
+        prepare_tlv_from_leaf(GET_PARAM_LEAF(dst_param), (&tlv));
+        put_value_in_tlv((&tlv), GET_LEAF_VALUE_PTR(dst_param)); 
+        collect_tlv(tlv_buff, &tlv);
+    }
+
+    /*Now reverse the TLV buffer*/
+    if(get_serialize_buffer_size(tlv_buff) < (sizeof(tlv_struct_t) << 1)){
+        return;
+    }
+
+    tlv_units = get_serialize_buffer_size(tlv_buff)/sizeof(tlv_struct_t);
+    tlv_temp = (tlv_struct_t *)(tlv_buff->b);
+    j = tlv_units -1;
+
+    for(; i < (tlv_units >> 1); i++, j--){
+        swap_tlv_units(tlv_temp+i, tlv_temp +j);
+    }
+}
+

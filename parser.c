@@ -38,7 +38,6 @@ place_console(char new_line){
 static char cons_input_buffer[CONS_INPUT_BUFFER_SIZE];
 static char last_command_input_buffer[CONS_INPUT_BUFFER_SIZE];
 
-
 typedef enum{
     COMPLETE,
     ERROR,
@@ -196,47 +195,68 @@ build_tlv_buffer(char **tokens,
 
 void
 parse_input_cmd(char *input, unsigned int len){
-    
-        char** tokens = NULL;
-        size_t token_cnt = 0;
-        CMD_PARSE_STATUS status = COMPLETE;
-         
-        tokens = str_split(input, ' ', &token_cnt);
-        if(!tokens)
-            return;
 
-        /*Walk the cmd tree now and build the TLV buffer of leavf values, if any*/
+    char** tokens = NULL;
+    size_t token_cnt = 0;
+    CMD_PARSE_STATUS status = COMPLETE;
 
-        /*Honour the negate command triggered from TOP level or with in condif branch*/
-        if((strncmp(tokens[0], "no", 2) == 0) && token_cnt > 1){ 
-            if((get_current_branch_hook(get_cmd_tree_cursor()) == libcli_get_config_hook())
-                        || (get_cmd_tree_cursor() == &root))
-                status = build_tlv_buffer(&tokens[1], token_cnt -1, CONFIG_DISABLE);
-             else
-                 printf(ANSI_COLOR_YELLOW "Info : Command Negation is supported only for config commands\n" ANSI_COLOR_RESET);
+    tokens = str_split(input, ' ', &token_cnt);
+    if(!tokens)
+        return;
+
+    /*Walk the cmd tree now and build the TLV buffer of leavf values, if any*/
+    /*Handling do show/clear commands*/
+#if 1
+    if(token_cnt > 1 && 
+        ((strncmp(tokens[0], "do", 2) == 0)) &&
+        ((strncmp(tokens[1], "show", 4) == 0) || (strncmp(tokens[1], "clear", 5) == 0)) &&
+        (get_cmd_tree_cursor() != &root) && /*do commands are not allowed from root*/
+        (get_current_branch_hook(get_cmd_tree_cursor()) == libcli_get_config_hook())) /*Do commands are allowed only when user is operating in config mode*/
+        
+    {
+        param_t *curr_cursor_state = get_cmd_tree_cursor();
+        reset_cmd_tree_cursor();/*It will also destroy the config mode serialize buffer*/
+        status = build_tlv_buffer(&tokens[1], token_cnt -1, OPERATIONAL);
+
+        /*We should not  restore the saved cmd tree cursor and serialize buffer 
+         * if show command triggered from within the config mode has switched to MODE*/
+        if(get_cmd_tree_cursor() == &root){ 
+            set_cmd_tree_cursor(curr_cursor_state);
+            build_cmd_tree_leaves_data(tlv_buff, &root, curr_cursor_state); /*rebuild the serialize buffer*/
+            mark_checkpoint_serialize_buffer(tlv_buff);/*mark the checkpoint*/
         }
-
-        else if((strncmp(tokens[0], "end", strlen("end")) == 0) && (token_cnt == 1))
-            goto_top_of_cmd_tree(get_cmd_tree_cursor());
-
-        else if((strncmp(tokens[0], "exit", strlen("exit")) == 0) && (token_cnt == 1))
-            go_one_level_up_cmd_tree(get_cmd_tree_cursor());
-
-        /* Honour the config command from TOP or from within config branch*/
-        else if((strncmp(tokens[0], "config", MIN(strlen("config"), strlen(tokens[0]))) == 0) ||
-                ((get_cmd_tree_cursor() != &root) && 
-                (get_current_branch_hook(get_cmd_tree_cursor()) == libcli_get_config_hook())))
-            
-                 status = build_tlv_buffer(tokens, token_cnt, CONFIG_ENABLE);
-        else 
-            status = build_tlv_buffer(tokens, token_cnt, OPERATIONAL); 
-
-        free_tokens(tokens);
-
-        if(is_user_in_cmd_mode())
-            restore_checkpoint_serialize_buffer(tlv_buff);
+    }
+#endif
+    /*Honour the negate command triggered from TOP level or with in condif branch*/
+    else if((strncmp(tokens[0], "no", 2) == 0) && token_cnt > 1){ 
+        if(((get_cmd_tree_cursor() != &root) && (get_current_branch_hook(get_cmd_tree_cursor()) == libcli_get_config_hook()))
+                || (get_cmd_tree_cursor() == &root))
+            status = build_tlv_buffer(&tokens[1], token_cnt -1, CONFIG_DISABLE);
         else
-            reset_serialize_buffer(tlv_buff);
+            printf(ANSI_COLOR_YELLOW "Info : Command Negation is supported only for config commands\n" ANSI_COLOR_RESET);
+    }
+
+    else if((strncmp(tokens[0], "end", strlen("end")) == 0) && (token_cnt == 1))
+        goto_top_of_cmd_tree(get_cmd_tree_cursor());
+
+    else if((strncmp(tokens[0], "exit", strlen("exit")) == 0) && (token_cnt == 1))
+        go_one_level_up_cmd_tree(get_cmd_tree_cursor());
+
+    /* Honour the config command from TOP or from within config branch*/
+    else if((strncmp(tokens[0], "config", MIN(strlen("config"), strlen(tokens[0]))) == 0) ||
+            ((get_cmd_tree_cursor() != &root) && 
+             (get_current_branch_hook(get_cmd_tree_cursor()) == libcli_get_config_hook())))
+
+        status = build_tlv_buffer(tokens, token_cnt, CONFIG_ENABLE);
+    else 
+        status = build_tlv_buffer(tokens, token_cnt, OPERATIONAL); 
+
+    free_tokens(tokens);
+
+    if(is_user_in_cmd_mode())
+        restore_checkpoint_serialize_buffer(tlv_buff);
+    else
+        reset_serialize_buffer(tlv_buff);
 }
 
 
