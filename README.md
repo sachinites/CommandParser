@@ -12,3 +12,11 @@ Steps :
 
 1. Run 'make' to compile the library.
 2. Run test aplication executable (./exe) and enjoy the CLI.
+
+
+Requirement to use the Dynamic/Live parser.
+
+To use a Live parser, we have a dependency on ncurses library.
+To install the ncurses Library :
+    sudo apt-get install libncurses5-dev libncursesw5-dev
+

@@ -124,11 +124,18 @@ show_history_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
         printf("Error : History file could not be read\n");
         return 0;
     }
-
+#if 0
     unsigned int i = 0;
     tlv_struct_t *tlv = NULL;
 
     tlv = (tlv_struct_t *)(b->b);
-
+#endif
    return 0; 
-}   
+}
+
+int
+clear_screen_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
+    
+    system("clear");
+    return 0;   
+}

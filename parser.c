@@ -299,9 +299,3 @@ command_parser(void){
     }
 }
 
-void
-enhanced_command_parser(void){
-    
-
-}
-

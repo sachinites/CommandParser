@@ -3,9 +3,9 @@ CFLAGS=-g -Wall
 INCLUDES=-I .
 CLILIB=libcli.a
 TARGET:exe ${CLILIB}
-OBJ=cmd_hier.o parser.o serialize.o string_util.o clistd.o
+OBJ=cmd_hier.o parser.o serialize.o string_util.o clistd.o enparser.o
 exe:testapp.o ${CLILIB}
-	${CC} ${CFLAGS} ${INCLUDES} testapp.o -o exe -L . -lcli
+	${CC} ${CFLAGS} ${INCLUDES} testapp.o -o exe -L . -lcli -lncurses
 cmd_hier.o:cmd_hier.c
 	${CC} ${CFLAGS} -c ${INCLUDES} cmd_hier.c -o cmd_hier.o
 parser.o:parser.c
@@ -18,6 +18,8 @@ clistd.o:clistd.c
 	${CC} ${CFLAGS} -c ${INCLUDES} clistd.c -o clistd.o
 testapp.o:testapp.c
 	${CC} ${CFLAGS} -c ${INCLUDES} testapp.c -o testapp.o
+enparser.o:enparser.c
+	${CC} ${CFLAGS} -c ${INCLUDES} enparser.c -o enparser.o 
 ${CLILIB}: ${OBJ}
 	ar rs ${CLILIB} ${OBJ}
 clean:

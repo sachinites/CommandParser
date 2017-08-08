@@ -25,6 +25,7 @@
 #include "clistd.h"
 #include "string_util.h"
 #include "css.h"
+#include <signal.h>
 
 param_t root;
 leaf_type_handler leaf_handler_array[LEAF_MAX];
@@ -111,6 +112,15 @@ get_str_leaf_type(leaf_type_t leaf_type){
     return NULL;
 }
 
+
+static void
+ctrlC_signal_handler(int sig){
+    printf("Ctrl-C pressed\n");
+    printf("Bye Bye\n");
+    system("clear");
+    exit(0);
+}
+
 void 
 init_libcli(){
 
@@ -130,7 +140,7 @@ init_libcli(){
     leaf_handler_array[FLOAT]   = float_validation_handler;
 
 
-    set_device_name("router");
+    set_device_name("root@juniper");
 
     /*Registering Zero level default command hooks*/
     /*Show hook*/
@@ -143,7 +153,7 @@ init_libcli(){
     libcli_register_param(&show, &history);
     
     static param_t no_of_commands;
-    init_param(&no_of_commands, LEAF, "N", show_history_callback, 0, INT, "N", "How many Commands");  
+    init_param(&no_of_commands, LEAF, "N", show_history_callback, 0, INT, "N", "No Of Commands to fetch");  
     libcli_register_param(&history, &no_of_commands);
 
     /*debug hook*/
@@ -172,6 +182,14 @@ init_libcli(){
     static param_t config_console_name_name;
     init_param(&config_console_name_name, LEAF, 0, config_console_name_handler, 0, STRING, "cons-name", "Name of Console"); 
     libcli_register_param(&config_console_name, &config_console_name_name);
+
+    /* Install clear command "cls"*/
+    static param_t cls;
+    init_param(&cls, CMD, "cls", clear_screen_handler, 0, INVALID, 0, "clear screen");
+    libcli_register_param(0, &cls);
+
+    /* Resgister CTRL-C signal handler*/
+    signal(SIGINT, ctrlC_signal_handler);
 }
 
 void
@@ -344,9 +362,13 @@ dump_cmd_tree(){
 extern 
 void command_parser(void);
 
+extern 
+void  enhanced_command_parser(void);
+
 void
 start_shell(void){
-    command_parser();
+    //command_parser();
+    enhanced_command_parser();
 }
 
 
