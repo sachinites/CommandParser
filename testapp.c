@@ -42,6 +42,14 @@ show_ip_igmp_groups_handler(param_t *param, ser_buff_t *tlv_buf, op_mode enable_
 }
 
 int
+mtrace_handler(param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_disable){
+
+    dump_tlv_serialized_buffer(tlv_buf);
+    return 0;
+}
+
+
+int
 config_router_name_handler(param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_disable){
     set_device_name("router2");
     return 0;
@@ -146,6 +154,50 @@ main(int argc, char **argv){
     init_param(&show_ip_igmp_groups_group_ip_vlan_vlan_id, LEAF, 0, show_ip_igmp_groups_handler, 
                                     user_vlan_validation_callback, INT, "vlan-id" ,"Vlan id(1-4095)");
     libcli_register_param(&show_ip_igmp_groups_group_ip_vlan, &show_ip_igmp_groups_group_ip_vlan_vlan_id);
+
+    /*mtrace command implementation*/
+    static param_t mtrace;
+    init_param(&mtrace, CMD, "mtrace", 0, 0, INVALID, 0, "mtrace command");
+    libcli_register_param(0, &mtrace);
+
+    static param_t source;
+    init_param(&source, CMD, "source", 0, 0, INVALID, 0, "source command");
+    libcli_register_param(&mtrace, &source);
+
+    static param_t source_ip;
+    init_param(&source_ip, LEAF, 0, mtrace_handler, 0, IPV4, "source-ip", "Source Ipv4 address");
+    libcli_register_param(&source, &source_ip);
+
+    /*mtrace source <source ip> destination <dest-ip>*/
+
+    static param_t destination;
+    init_param(&destination, CMD, "destination", 0, 0, INVALID, 0, "destination command");
+    libcli_register_param(&source_ip, &destination);
+
+    static param_t dest_ip;
+    init_param(&dest_ip, LEAF, 0, mtrace_handler, 0, IPV4, "destination-ip", "Destination Ipv4 address");
+    libcli_register_param(&destination, &dest_ip);
+
+    /*mtrace source <source ip> group <group-ip>*/
+
+    static param_t group;
+    init_param(&group, CMD, "group", 0, 0, INVALID, 0, "group command");
+    libcli_register_param(&source_ip, &group);
+
+    static param_t group_ip;
+    init_param(&group_ip, LEAF, 0, mtrace_handler, 0, IPV4, "group-ip", "Multicast Group Ipv4 address");
+    libcli_register_param(&group, &group_ip);
+
+
+    /*mtrace source <source ip> destination <dest-ip> group <group_ip>*/
+
+    static param_t group2;
+    init_param(&group2, CMD, "group", 0, 0, INVALID, 0, "group command");
+    libcli_register_param(&dest_ip, &group2);
+
+    static param_t group_ip2;
+    init_param(&group_ip2, LEAF, 0, mtrace_handler, 0, IPV4, "group-ip", "Multicast Group Ipv4 address");
+    libcli_register_param(&group2, &group_ip2);
 
     start_shell();
     return 0;

@@ -245,6 +245,7 @@ command_parser(void){
 
     place_console(1);
     while(1){
+
         if((fgets((char *)cons_input_buffer, sizeof(cons_input_buffer)-1, stdin) == NULL)){
             printf("error in reading from stdin\n");
             exit(EXIT_SUCCESS);

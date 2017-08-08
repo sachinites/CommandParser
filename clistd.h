@@ -58,4 +58,7 @@ repeat_last_command(param_t *param, ser_buff_t *b, op_mode enable_or_disable);
 int
 mode_enter_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable);
 
+int
+show_history_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable);
+
 #endif /* __CLISTD__ */

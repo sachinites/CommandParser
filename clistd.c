@@ -111,4 +111,24 @@ mode_enter_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
     mark_checkpoint_serialize_buffer(b);
     return 0;
 }
+ 
+/* show history calback*/
 
+ser_buff_t *file_read_buffer = NULL;
+
+ int
+show_history_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
+    
+    FILE *f = fopen("LIBCLI_HIST_FILE", "r");
+    if(!f){
+        printf("Error : History file could not be read\n");
+        return 0;
+    }
+
+    unsigned int i = 0;
+    tlv_struct_t *tlv = NULL;
+
+    tlv = (tlv_struct_t *)(b->b);
+
+   return 0; 
+}   

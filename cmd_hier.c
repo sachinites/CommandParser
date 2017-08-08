@@ -81,6 +81,8 @@ get_last_command();
 
 extern char console_name[TERMINAL_NAME_SIZE];
 
+extern  ser_buff_t *file_read_buffer;
+
 extern void
 parse_input_cmd(char *input, unsigned int len);
 
@@ -116,6 +118,7 @@ init_libcli(){
     
     /*Intialised serialized buffer to collect leaf values in TLV format*/
     init_serialized_buffer_of_defined_size(&tlv_buff, TLV_MAX_BUFFER_SIZE);
+    init_serialized_buffer_of_defined_size(&file_read_buffer, TLV_MAX_BUFFER_SIZE);
 
     reset_cmd_tree_cursor();
 
@@ -133,6 +136,15 @@ init_libcli(){
     /*Show hook*/
     init_param(&show, CMD, "show", 0, 0, INVALID, 0, "show");
     libcli_register_param(&root, &show);
+
+    /*show history*/
+    static param_t history;
+    init_param(&history, CMD, "history", show_history_callback, 0, INVALID, INVALID, "Command history");
+    libcli_register_param(&show, &history);
+    
+    static param_t no_of_commands;
+    init_param(&no_of_commands, LEAF, "N", show_history_callback, 0, INT, "N", "How many Commands");  
+    libcli_register_param(&history, &no_of_commands);
 
     /*debug hook*/
     init_param(&debug, CMD, "debug", 0, 0, INVALID, 0, "debug");
