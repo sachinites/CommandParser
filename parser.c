@@ -22,6 +22,7 @@
 #include "cmdtlv.h"
 #include "cliconst.h"
 #include "css.h"
+#include "libcli.h"
 
 extern param_t root;
 extern leaf_type_handler leaf_handler_array[LEAF_MAX];
@@ -57,7 +58,7 @@ get_last_command(){
 
 
 
-static param_t*
+param_t*
 find_matching_param(param_t **options, const char *cmd_name){
     
     int i = 0, leaf_index = -1;
@@ -160,6 +161,10 @@ build_tlv_buffer(char **tokens,
 
                     for(; i < MAX_OPTION_SIZE; i++){
                         if(parent->options[i]){
+
+                            if(IS_PARAM_HIDDEN(parent->options[i]))
+                                continue;
+
                             if(IS_PARAM_CMD(parent->options[i])){
                                 printf(ANSI_COLOR_MAGENTA "nxt cmd  -> %-31s   |   %s\n" ANSI_COLOR_RESET, GET_CMD_NAME(parent->options[i]), GET_PARAM_HELP_STRING(parent->options[i]));
                                 continue;

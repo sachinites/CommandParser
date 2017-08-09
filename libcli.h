@@ -41,6 +41,9 @@ libcli_get_debug_hook(void);
 param_t *
 libcli_get_config_hook(void);
 
+param_t *
+libcli_get_clear_hook(void);
+
 /*See the definition of this fn to know about arguments*/
 void
 init_param(param_t *param,              
@@ -61,5 +64,9 @@ dump_cmd_tree();
 
 void
 start_shell(void);
+
+#define HIDE_PARAM(param_ptr)   ((param_ptr)->ishidden = 1)
+#define UNHIDE_PARAM(param_ptr) ((param_ptr)->ishidden = 0)
+#define IS_PARAM_HIDDEN(param_ptr)  ((param_ptr)->ishidden == 1)
 
 #endif

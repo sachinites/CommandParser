@@ -83,7 +83,7 @@ config_console_name_handler(param_t *param, ser_buff_t *b, op_mode enable_or_dis
             set_device_name(tlv->value);
         else{
             if(strncmp(tlv->value, console_name, strlen(tlv->value)) == 0)
-                set_device_name("router");
+                set_device_name(DEFAULT_DEVICE_NAME);
             else
                 printf("Error : Incorrect device name\n");
         }
@@ -138,4 +138,27 @@ clear_screen_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
     
     system("clear");
     return 0;   
+}
+
+int
+exit_cmd_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
+   
+    go_one_level_up_cmd_tree(get_cmd_tree_cursor());
+    return 0;
+}
+
+int
+end_cmd_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
+
+    goto_top_of_cmd_tree(get_cmd_tree_cursor());    
+    return 0;
+}
+
+int
+config_mode_enter_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
+
+    set_cmd_tree_cursor(param);
+    build_mode_console_name(param);
+    mark_checkpoint_serialize_buffer(b);
+    return 0;
 }

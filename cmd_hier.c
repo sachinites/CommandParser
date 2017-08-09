@@ -36,6 +36,7 @@ param_t *cmd_tree_cursor = NULL;
 param_t show;
 param_t debug;
 param_t config;
+param_t clear;
 
 /* Function to be used to get access to above hooks*/
 
@@ -52,6 +53,11 @@ libcli_get_debug_hook(void){
 param_t *
 libcli_get_config_hook(void){
     return &config;
+}
+
+param_t *
+libcli_get_clear_hook(void){
+    return &clear;
 }
 
 /* Cursor functions*/
@@ -117,7 +123,6 @@ static void
 ctrlC_signal_handler(int sig){
     printf("Ctrl-C pressed\n");
     printf("Bye Bye\n");
-    system("clear");
     exit(0);
 }
 
@@ -140,16 +145,16 @@ init_libcli(){
     leaf_handler_array[FLOAT]   = float_validation_handler;
 
 
-    set_device_name("root@juniper");
+    set_device_name(DEFAULT_DEVICE_NAME);
 
     /*Registering Zero level default command hooks*/
     /*Show hook*/
-    init_param(&show, CMD, "show", 0, 0, INVALID, 0, "show");
+    init_param(&show, CMD, "show", 0, 0, INVALID, 0, "show cmds");
     libcli_register_param(&root, &show);
 
     /*show history*/
     static param_t history;
-    init_param(&history, CMD, "history", show_history_callback, 0, INVALID, INVALID, "Command history");
+    init_param(&history, CMD, "history", show_history_callback, 0, INVALID, 0, "Command history");
     libcli_register_param(&show, &history);
     
     static param_t no_of_commands;
@@ -157,12 +162,16 @@ init_libcli(){
     libcli_register_param(&history, &no_of_commands);
 
     /*debug hook*/
-    init_param(&debug, CMD, "debug", 0, 0, INVALID, 0, "debug");
+    init_param(&debug, CMD, "debug", 0, 0, INVALID, 0, "debug cmds");
     libcli_register_param(&root, &debug);
 
     /*configure hook*/
-    init_param(&config, CMD, "config", 0, 0, INVALID, 0, "config");
+    init_param(&config, CMD, "config", config_mode_enter_handler, 0, INVALID, 0, "config cmds");
     libcli_register_param(&root, &config);
+
+    /*configure hook*/
+    init_param(&clear, CMD, "clear", 0, 0, INVALID, 0, "clear cmds");
+    libcli_register_param(&root, &clear);
 
     /*configure repeat*/
     static param_t repeat;
@@ -186,7 +195,18 @@ init_libcli(){
     /* Install clear command "cls"*/
     static param_t cls;
     init_param(&cls, CMD, "cls", clear_screen_handler, 0, INVALID, 0, "clear screen");
+    HIDE_PARAM(&cls);
     libcli_register_param(0, &cls);
+
+    static param_t exit_cmd;
+    init_param(&exit_cmd, CMD, "exit", exit_cmd_handler, 0, INVALID, 0, "Move One Level Up");
+    HIDE_PARAM(&exit_cmd);
+    libcli_register_param(0, &exit_cmd);
+
+    static param_t end_cmd;
+    init_param(&end_cmd, CMD, "end", end_cmd_handler, 0, INVALID, 0, "Goto Top level");
+    HIDE_PARAM(&end_cmd);
+    libcli_register_param(0, &end_cmd);
 
     /* Resgister CTRL-C signal handler*/
     signal(SIGINT, ctrlC_signal_handler);
@@ -220,6 +240,7 @@ init_param(param_t *param,                               /* pointer to static pa
         GET_LEAF_ID(param)[LEAF_ID_SIZE -1] = '\0';
     }
 
+    param->ishidden = 0;
     param->parent = NULL;
     param->callback = callback;
     strncpy(GET_PARAM_HELP_STRING(param), help, MIN(PARAM_HELP_STRING_SIZE, strlen(help)));
@@ -268,7 +289,8 @@ is_param_mode_capable(param_t *param){
         if(IS_PARAM_LEAF(param->options[i]))
             continue;
 
-        if(strncmp(GET_CMD_NAME(param->options[i]), "*", 1) == 0)
+        if(strncmp(GET_CMD_NAME(param->options[i]), 
+                MODE_CHARACTER, strlen(MODE_CHARACTER)) == 0)
             return 0;
 
     }
@@ -293,7 +315,7 @@ insert_moding_capability(param_t *param){
         return -1;
 
     param_t * mode_param = calloc(1, sizeof(param_t));
-    init_param(mode_param, CMD, "*", mode_enter_callback , 0, INVALID, 0, "ENTER MODE");
+    init_param(mode_param, CMD, MODE_CHARACTER, mode_enter_callback , 0, INVALID, 0, "ENTER MODE");
     param->options[0] = mode_param;
     mode_param->parent = param;
     return 0;
@@ -549,3 +571,34 @@ build_cmd_tree_leaves_data(ser_buff_t *tlv_buff,/*Output serialize buffer*/
     }
 }
 
+/*This function return (0) if a token array would parse the
+ * same branch of cmd tree in which param resides. This test is required
+ * to restrict the user to trigger the same branch command while he is in same
+ * branch mode. For example, the user is restricted from following commands as
+ * follows :
+ *
+ * root@juniper> show-ip-igmp $ do show  ....
+ * 
+ * return -1 if the user triggers different branch command
+ **/
+
+int
+is_present_in_same_cmd_tree(param_t *param, 
+                            char **tokens, 
+                            int token_cnt){
+    
+    assert(param);
+    assert(tokens);
+    assert(token_cnt > 1);
+
+    param_t *param_hook = get_current_branch_hook(param);
+    param_t *token_param = find_matching_param(&root.options[0], *(tokens + 1));
+
+    if(!token_param)
+        return -1;
+
+    if(token_param == param_hook)
+        return 0;
+
+    return -1;
+}

@@ -67,6 +67,7 @@ struct _param_t_{
     param_type_t param_type;
     _param_t cmd_type;
     cmd_callback callback;
+    char ishidden;
     char help[PARAM_HELP_STRING_SIZE];
     param_t *options[MAX_OPTION_SIZE];
     param_t *parent;
@@ -103,6 +104,7 @@ get_str_leaf_type(leaf_type_t leaf_type);
 #define INVOKE_APPLICATION_CALLBACK_HANDLER(param, arg, enable_or_disable) \
                     param->callback(param, arg, enable_or_disable);
 
+/*True if user is not operating in root level*/
 int
 is_user_in_cmd_mode();
 
@@ -165,6 +167,12 @@ do{                       \
 param_t *
 get_current_branch_hook(param_t *current_param);
 
+
+#define IS_CURRENT_MODE_SHOW(param_ptr)      (get_current_branch_hook(param_ptr) == libcli_get_show_hook())
+#define IS_CURRENT_MODE_DEBUG(param_ptr)     (get_current_branch_hook(param_ptr) == libcli_get_debug_hook())
+#define IS_CURRENT_MODE_CONFIG(param_ptr)    (get_current_branch_hook(param_ptr) == libcli_get_config_hook())
+#define IS_CURRENT_MODE_CLEAR(param_ptr)     (get_current_branch_hook(param_ptr) == libcli_get_clear_hook())
+
 void
 reset_cmd_tree_cursor();
 
@@ -180,6 +188,9 @@ set_cmd_tree_cursor(param_t *param);
 param_t *
 get_cmd_tree_cursor();
 
+param_t*
+find_matching_param(param_t **options, const char *cmd_name);
+
 int
 insert_moding_capability(param_t *param);
 
@@ -192,4 +203,19 @@ void
 build_cmd_tree_leaves_data(ser_buff_t *tlv_buff,/*Output serialize buffer*/ 
                             param_t *src_param, /*Source command*/
                             param_t *dst_param);/*Destination command*/
+
+/*This function return (0) if a token array would parse the
+ * same branch of cmd tree in which param resides. This test is required
+ * to restrict the user to trigger the same branch command while he is in same
+ * branch mode. For example, the user is restricted from following commands as 
+ * follows :
+ *
+ * root@juniper> show-ip-igmp $ do show  ....
+ *
+ * return -1 if the user triggers different branch command
+ * */
+
+int
+is_present_in_same_cmd_tree(param_t *param, char **tokens, int token_cnt);
+
 #endif

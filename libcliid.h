@@ -22,7 +22,8 @@
 typedef enum{
     CONFIG_DISABLE,
     CONFIG_ENABLE,
-    OPERATIONAL
+    OPERATIONAL,
+    MODE_UNKNOWN
 } op_mode;
 
 typedef enum{
