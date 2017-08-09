@@ -114,6 +114,10 @@ main(int argc, char **argv){
     static param_t igmp;
     init_param(&igmp, CMD, "igmp", 0, 0, INVALID, 0, "IGMP Protocol");
     libcli_register_param(&ip, &igmp);
+    
+    static param_t igmp_config;
+    init_param(&igmp_config, CMD, "configuration", show_ip_igmp_groups_handler, 0, INVALID, 0, "IGMP Protocol Configuration");
+    libcli_register_param(&igmp, &igmp_config);
 
     static param_t debug_show_cmdtree;
     init_param(&debug_show_cmdtree, CMD, "cmdtree", show_cmd_tree, 0, INVALID, 0, "Display command tree");

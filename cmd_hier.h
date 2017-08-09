@@ -108,8 +108,8 @@ get_str_leaf_type(leaf_type_t leaf_type);
 int
 is_user_in_cmd_mode();
 
-void
-set_console_name(const char *cons_name);
+param_t *
+libcli_get_no_hook(void);
 
 int
 is_param_mode_capable(param_t *param);
@@ -142,13 +142,11 @@ INVOKE_LEAF_USER_VALIDATION_CALLBACK(param_t *param, char *leaf_value) {
 static inline int
 is_mode_exception_cmd(param_t *param){
 
-    if(IS_PARAM_LEAF(param))
-        return -1;
+    /*Add more cases here if more non-mode supported command
+     * are to be configured*/
 
-/*Add more cases here if more non-mode supported command
- * are to be configured*/
-    if((strncmp(GET_CMD_NAME(param), "*",  1) == 0) ||
-       (strncmp(GET_CMD_NAME(param), "no", 2) == 0))
+    if((strncmp(GET_CMD_NAME(param), MODE_CHARACTER,  
+        strlen(MODE_CHARACTER)) == 0))
         return 0;
 
     return -1;
@@ -168,10 +166,17 @@ param_t *
 get_current_branch_hook(param_t *current_param);
 
 
-#define IS_CURRENT_MODE_SHOW(param_ptr)      (get_current_branch_hook(param_ptr) == libcli_get_show_hook())
-#define IS_CURRENT_MODE_DEBUG(param_ptr)     (get_current_branch_hook(param_ptr) == libcli_get_debug_hook())
-#define IS_CURRENT_MODE_CONFIG(param_ptr)    (get_current_branch_hook(param_ptr) == libcli_get_config_hook())
-#define IS_CURRENT_MODE_CLEAR(param_ptr)     (get_current_branch_hook(param_ptr) == libcli_get_clear_hook())
+#define IS_CURRENT_MODE_SHOW()      (get_current_branch_hook(get_cmd_tree_cursor()) == libcli_get_show_hook())
+#define IS_CURRENT_MODE_DEBUG()     (get_current_branch_hook(get_cmd_tree_cursor()) == libcli_get_debug_hook())
+#define IS_CURRENT_MODE_CONFIG()    (get_current_branch_hook(get_cmd_tree_cursor()) == libcli_get_config_hook())
+#define IS_CURRENT_MODE_CLEAR()     (get_current_branch_hook(get_cmd_tree_cursor()) == libcli_get_clear_hook())
+
+static inline void
+associate_no_hook_with_child(param_t *child_param){
+    
+    param_t *no_hook = libcli_get_no_hook();
+    no_hook->options[1] = child_param;
+}
 
 void
 reset_cmd_tree_cursor();
@@ -203,19 +208,5 @@ void
 build_cmd_tree_leaves_data(ser_buff_t *tlv_buff,/*Output serialize buffer*/ 
                             param_t *src_param, /*Source command*/
                             param_t *dst_param);/*Destination command*/
-
-/*This function return (0) if a token array would parse the
- * same branch of cmd tree in which param resides. This test is required
- * to restrict the user to trigger the same branch command while he is in same
- * branch mode. For example, the user is restricted from following commands as 
- * follows :
- *
- * root@juniper> show-ip-igmp $ do show  ....
- *
- * return -1 if the user triggers different branch command
- * */
-
-int
-is_present_in_same_cmd_tree(param_t *param, char **tokens, int token_cnt);
 
 #endif

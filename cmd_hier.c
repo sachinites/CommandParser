@@ -349,19 +349,10 @@ _dump_one_cmd(param_t *param, unsigned short tabs){
 
     int i = 0;
 
-    if(IS_PARAM_CMD(param)){
-        /*Skip dumping the 'no' branch of the cmd tree*/
-        if(strncmp(GET_CMD_NAME(param), "no",2) == 0)
-            return;
-    }
-
     PRINT_TABS(tabs);
 
-    if(IS_PARAM_CMD(param)){
-        /*if(strncmp(GET_CMD_NAME(param), "*", 1) == 0)
-            return;*/
+    if(IS_PARAM_CMD(param))
         printf("-->%s(%d)", GET_PARAM_CMD(param)->cmd_name, tabs);
-    }
     else
         printf("-->%s(%d)", GET_LEAF_TYPE_STR(param), tabs);
 
@@ -391,13 +382,6 @@ void
 start_shell(void){
     command_parser();
     //enhanced_command_parser();
-}
-
-
-void
-set_console_name(const char *cons_name){
-    sprintf(console_name, "%s>", cons_name);
-    console_name[TERMINAL_NAME_SIZE -1] = '\0';    
 }
 
 /* Command Mode implementation */
@@ -569,36 +553,4 @@ build_cmd_tree_leaves_data(ser_buff_t *tlv_buff,/*Output serialize buffer*/
     for(; i < (tlv_units >> 1); i++, j--){
         swap_tlv_units(tlv_temp+i, tlv_temp +j);
     }
-}
-
-/*This function return (0) if a token array would parse the
- * same branch of cmd tree in which param resides. This test is required
- * to restrict the user to trigger the same branch command while he is in same
- * branch mode. For example, the user is restricted from following commands as
- * follows :
- *
- * root@juniper> show-ip-igmp $ do show  ....
- * 
- * return -1 if the user triggers different branch command
- **/
-
-int
-is_present_in_same_cmd_tree(param_t *param, 
-                            char **tokens, 
-                            int token_cnt){
-    
-    assert(param);
-    assert(tokens);
-    assert(token_cnt > 1);
-
-    param_t *param_hook = get_current_branch_hook(param);
-    param_t *token_param = find_matching_param(&root.options[0], *(tokens + 1));
-
-    if(!token_param)
-        return -1;
-
-    if(token_param == param_hook)
-        return 0;
-
-    return -1;
 }

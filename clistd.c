@@ -109,6 +109,8 @@ mode_enter_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
     set_cmd_tree_cursor(param->parent);
     build_mode_console_name(param->parent);
     mark_checkpoint_serialize_buffer(b);
+    if(IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(param->parent))
+        INVOKE_APPLICATION_CALLBACK_HANDLER(param->parent, b, enable_or_disable);
     return 0;
 }
  
