@@ -59,6 +59,9 @@ int
 mode_enter_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable);
 
 int
+display_sub_options_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable);
+
+int
 show_history_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable);
 
 int

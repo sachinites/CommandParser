@@ -45,7 +45,6 @@ typedef enum{
     INVALID_LEAF,
     USER_INVALID_LEAF,
     CMD_NOT_FOUND,
-    QUESTION_MARK,
     INCOMPLETE_COMMAND,
     MULTIPLE_MATCHING_COMMANDS,
     UNKNOWN
@@ -62,7 +61,8 @@ param_t*
 find_matching_param(param_t **options, const char *cmd_name){
     
     int i = 0, leaf_index = -1;
-    for(; options[i] && i < MAX_OPTION_SIZE; i++){
+
+    for(; options[i] && i <= CHILDREN_END_INDEX; i++){
         if(IS_PARAM_LEAF(options[i])){
             leaf_index = i;
             continue;
@@ -87,23 +87,19 @@ find_matching_param(param_t **options, const char *cmd_name){
 static tlv_struct_t tlv;
 
 static CMD_PARSE_STATUS
-build_tlv_buffer(char **tokens, 
+build_tlv_buffer(param_t *param, char **tokens, 
                  size_t token_cnt, 
                  op_mode enable_or_disable){ 
 
     int i = 0; 
-    param_t *param = get_cmd_tree_cursor();
+    //param_t *param = get_cmd_tree_cursor();
     param_t *parent = NULL;
     CMD_PARSE_STATUS status = COMPLETE;
     memset(&tlv, 0, sizeof(tlv_struct_t));
 
     for(; i < token_cnt; i++){
         parent = param;
-        if(strncmp(*(tokens +i), "?", 1) == 0){
-            status = QUESTION_MARK;
-            break;
-        }
-
+        
         param = find_matching_param(get_child_array_ptr(param), *(tokens +i));
 
         if(param){
@@ -152,46 +148,37 @@ build_tlv_buffer(char **tokens,
     switch(status){
         case MULTIPLE_MATCHING_COMMANDS:
             break;
-        case QUESTION_MARK:
-            {
-                i = 0;
-                
-                if(IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(parent))
-                    printf("<Enter>\n");
 
-                    for(; i < MAX_OPTION_SIZE; i++){
-                        if(parent->options[i]){
-
-                            if(IS_PARAM_HIDDEN(parent->options[i]))
-                                continue;
-
-                            if(IS_PARAM_CMD(parent->options[i])){
-                                printf(ANSI_COLOR_MAGENTA "nxt cmd  -> %-31s   |   %s\n" ANSI_COLOR_RESET, GET_CMD_NAME(parent->options[i]), GET_PARAM_HELP_STRING(parent->options[i]));
-                                continue;
-                            }
-                            printf(ANSI_COLOR_CYAN "nxt leaf -> %-32s  |   %s\n" ANSI_COLOR_RESET, GET_LEAF_TYPE_STR(parent->options[i]), GET_PARAM_HELP_STRING(parent->options[i]));
-                            continue;
-                        }
-                        break;
-                    }
-            } 
-            break;
         case CMD_NOT_FOUND:
             printf(ANSI_COLOR_RED "Error : Following Token not registered : %s\n" ANSI_COLOR_RESET, *(tokens +i));
             break;
+
         case INVALID_LEAF:
             printf(ANSI_COLOR_RED "Error : Following leaf value could not be validated : %s, Expected Data type = %s\n" ANSI_COLOR_RESET, *(tokens +i), GET_LEAF_TYPE_STR(param));
             break;
+
         case COMPLETE:
             printf(ANSI_COLOR_GREEN "Parse Success.\n" ANSI_COLOR_RESET);
-            INVOKE_APPLICATION_CALLBACK_HANDLER(param, tlv_buff, enable_or_disable);
+
+            if(param == libcli_get_suboptions_param())
+                display_sub_options_callback(parent, 0, MODE_UNKNOWN);
+
+            else if(param == libcli_get_mode_param())
+                mode_enter_callback(parent, tlv_buff, MODE_UNKNOWN);
+
+            else
+                INVOKE_APPLICATION_CALLBACK_HANDLER(param, tlv_buff, enable_or_disable);
+
             break;
+
         case USER_INVALID_LEAF:
             printf(ANSI_COLOR_YELLOW "Error : User validation has failed\n" ANSI_COLOR_RESET);
             break;
+
         case INCOMPLETE_COMMAND:
             printf(ANSI_COLOR_YELLOW "Error : Incomplete Command\n" ANSI_COLOR_RESET);
             break;
+
         default:
             printf(ANSI_COLOR_RED "FATAL : Unknown case fall\n" ANSI_COLOR_RESET);
     }
@@ -221,7 +208,7 @@ parse_input_cmd(char *input, unsigned int len){
     {
         param_t *curr_cursor_state = get_cmd_tree_cursor();
         reset_cmd_tree_cursor();/*It will also destroy the config mode serialize buffer*/
-        status = build_tlv_buffer(&tokens[1], token_cnt -1, OPERATIONAL);
+        status = build_tlv_buffer(get_cmd_tree_cursor(), &tokens[1], token_cnt -1, OPERATIONAL);
 
         /*We should not  restore the saved cmd tree cursor and serialize buffer 
          * if show command triggered from within the config mode has switched to MODE*/
@@ -236,7 +223,7 @@ parse_input_cmd(char *input, unsigned int len){
     else if((strncmp(tokens[0], "no", 2) == 0) && token_cnt > 1){ 
         if(((get_cmd_tree_cursor() != &root) && (get_current_branch_hook(get_cmd_tree_cursor()) == libcli_get_config_hook()))
                 || (get_cmd_tree_cursor() == &root))
-            status = build_tlv_buffer(&tokens[1], token_cnt -1, CONFIG_DISABLE);
+            status = build_tlv_buffer(get_cmd_tree_cursor(), &tokens[1], token_cnt -1, CONFIG_DISABLE);
         else
             printf(ANSI_COLOR_YELLOW "Info : Command Negation is supported only for config commands\n" ANSI_COLOR_RESET);
     }
@@ -252,9 +239,9 @@ parse_input_cmd(char *input, unsigned int len){
             ((get_cmd_tree_cursor() != &root) && 
              (get_current_branch_hook(get_cmd_tree_cursor()) == libcli_get_config_hook())))
 
-        status = build_tlv_buffer(tokens, token_cnt, CONFIG_ENABLE);
+        status = build_tlv_buffer(get_cmd_tree_cursor(), tokens, token_cnt, CONFIG_ENABLE);
     else 
-        status = build_tlv_buffer(tokens, token_cnt, OPERATIONAL); 
+        status = build_tlv_buffer(get_cmd_tree_cursor(), tokens, token_cnt, OPERATIONAL); 
 
     free_tokens(tokens);
 

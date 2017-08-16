@@ -30,6 +30,13 @@
 
 #define DEFAULT_DEVICE_NAME     "root@juniper"
 #define MODE_CHARACTER          "/"
+#define SUBOPTIONS_CHARACTER    "?"
+#define MAX_OPTION_SIZE         30
 
-#define LEAF_HISTORY_SIZE       15
+#define MODE_PARAM_INDEX        0
+#define SUBOPTIONS_INDEX        1
+//#define NEGATION_INDEX          2
+#define CHILDREN_START_INDEX    2
+#define CHILDREN_END_INDEX      (MAX_OPTION_SIZE -1)
+
 #endif /* __LIBCLICONSTANTS__ */

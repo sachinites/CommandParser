@@ -26,7 +26,6 @@
 
 /* If you modify the below Macro, pls put 
  * as many zeroes in NULL_OPTIONS expansion as well*/
-#define MAX_OPTION_SIZE 30
 #define NULL_OPTIONS    {0,0,0,0,0,0,0,0,0,0,\
                          0,0,0,0,0,0,0,0,0,0,\
                          0,0,0,0,0,0,0,0,0,0,}
@@ -104,6 +103,10 @@ get_str_leaf_type(leaf_type_t leaf_type);
 #define INVOKE_APPLICATION_CALLBACK_HANDLER(param, arg, enable_or_disable) \
                     param->callback(param, arg, enable_or_disable);
 
+#define IS_PARAM_MODE_ENABLE(param_ptr)         (param_ptr->options[MODE_PARAM_INDEX] != NULL)
+#define IS_PARAM_SUBOPTIONS_ENABLE(param_ptr)   (param_ptr->options[SUBOPTIONS_INDEX] != NULL)
+
+
 /*True if user is not operating in root level*/
 int
 is_user_in_cmd_mode();
@@ -111,8 +114,14 @@ is_user_in_cmd_mode();
 param_t *
 libcli_get_no_hook(void);
 
-int
-is_param_mode_capable(param_t *param);
+param_t *
+libcli_get_root(void);
+
+param_t *
+libcli_get_mode_param();
+
+param_t *
+libcli_get_suboptions_param();
 
 static inline int
 is_cmd_string_match(param_t *param, const char *str){
@@ -139,19 +148,6 @@ INVOKE_LEAF_USER_VALIDATION_CALLBACK(param_t *param, char *leaf_value) {
     return _INVOKE_LEAF_USER_VALIDATION_CALLBACK(param, leaf_value);
 }
 
-static inline int
-is_mode_exception_cmd(param_t *param){
-
-    /*Add more cases here if more non-mode supported command
-     * are to be configured*/
-
-    if((strncmp(GET_CMD_NAME(param), MODE_CHARACTER,  
-        strlen(MODE_CHARACTER)) == 0))
-        return 0;
-
-    return -1;
-}
-
 
 #define PRINT_TABS(n)     \
 do{                       \
@@ -171,13 +167,6 @@ get_current_branch_hook(param_t *current_param);
 #define IS_CURRENT_MODE_CONFIG()    (get_current_branch_hook(get_cmd_tree_cursor()) == libcli_get_config_hook())
 #define IS_CURRENT_MODE_CLEAR()     (get_current_branch_hook(get_cmd_tree_cursor()) == libcli_get_clear_hook())
 
-static inline void
-associate_no_hook_with_child(param_t *child_param){
-    
-    param_t *no_hook = libcli_get_no_hook();
-    no_hook->options[1] = child_param;
-}
-
 void
 reset_cmd_tree_cursor();
 
@@ -195,9 +184,6 @@ get_cmd_tree_cursor();
 
 param_t*
 find_matching_param(param_t **options, const char *cmd_name);
-
-int
-insert_moding_capability(param_t *param);
 
 void
 build_mode_console_name(param_t *dst_param);

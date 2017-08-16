@@ -20,6 +20,7 @@
 #include "clistd.h"
 #include "cmdtlv.h"
 #include "libcli.h"
+#include "css.h"
 
 extern void
 parse_input_cmd(char *input, unsigned int len);
@@ -105,15 +106,45 @@ repeat_last_command(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
 
  int
 mode_enter_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
-    
-    set_cmd_tree_cursor(param->parent);
-    build_mode_console_name(param->parent);
+ 
+    if(param == libcli_get_root()){
+        printf(ANSI_COLOR_YELLOW "Info : Mode not supported at root level\n" ANSI_COLOR_RESET);
+        return 0;   
+    }
+    set_cmd_tree_cursor(param);
+    build_mode_console_name(param);
     mark_checkpoint_serialize_buffer(b);
-    if(IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(param->parent))
-        INVOKE_APPLICATION_CALLBACK_HANDLER(param->parent, b, enable_or_disable);
+    if(IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(param))
+        INVOKE_APPLICATION_CALLBACK_HANDLER(param, b, enable_or_disable);
     return 0;
 }
  
+ 
+ int
+display_sub_options_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
+    
+    int i = 0;
+
+    if(IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(param))
+        printf("<Enter>\n");
+
+    for(i = CHILDREN_START_INDEX; i <= CHILDREN_END_INDEX; i++){
+        if(param->options[i]){
+
+            if(IS_PARAM_HIDDEN(param->options[i]))
+                continue;
+
+            if(IS_PARAM_CMD(param->options[i])){
+                printf(ANSI_COLOR_MAGENTA "nxt cmd  -> %-31s   |   %s\n" ANSI_COLOR_RESET, GET_CMD_NAME(param->options[i]), GET_PARAM_HELP_STRING(param->options[i]));
+                continue;
+            }
+            printf(ANSI_COLOR_CYAN "nxt leaf -> %-32s  |   %s\n" ANSI_COLOR_RESET, GET_LEAF_TYPE_STR(param->options[i]), GET_PARAM_HELP_STRING(param->options[i]));
+            continue;
+        }
+        break;
+    }
+    return 0;
+}
 /* show history calback*/
 
 ser_buff_t *file_read_buffer = NULL;

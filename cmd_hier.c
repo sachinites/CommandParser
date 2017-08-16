@@ -27,18 +27,39 @@
 #include "css.h"
 #include <signal.h>
 
-param_t root;
 leaf_type_handler leaf_handler_array[LEAF_MAX];
 ser_buff_t *tlv_buff;
 param_t *cmd_tree_cursor = NULL;
 
 /*Default zero level commands hooks. */
+param_t root;
 param_t show;
 param_t debug;
 param_t config;
 param_t clear;
 
+/* Default param Capabilities*/
+
+static param_t mode_param;
+static param_t suboptions_param;
+
+param_t *
+libcli_get_mode_param(){
+    return &mode_param;
+}
+
+
+param_t *
+libcli_get_suboptions_param(){
+    return &suboptions_param;
+}
+
 /* Function to be used to get access to above hooks*/
+
+param_t *
+libcli_get_root(void){
+    return &root;
+}
 
 param_t *
 libcli_get_show_hook(void){
@@ -146,6 +167,11 @@ init_libcli(){
 
 
     set_device_name(DEFAULT_DEVICE_NAME);
+    
+    /*Initialise Capablities Params*/
+
+    init_param(&mode_param, CMD, MODE_CHARACTER, mode_enter_callback , 0, INVALID, 0, "ENTER MODE");
+    init_param(&suboptions_param, CMD, SUBOPTIONS_CHARACTER, display_sub_options_callback, 0, INVALID, 0, "Sub-Options"); 
 
     /*Registering Zero level default command hooks*/
     /*Show hook*/
@@ -272,69 +298,26 @@ set_device_name(const char *cons_name){
         free_tokens(tokens);
 }
 
-int
-is_param_mode_capable(param_t *param){
-
-    int i = 0;
-    assert(param);
-
-    if(param == &root)
-        return -1;
-
-    if(param->options[0] == NULL)
-        return -1;
-          
-    for(; i < MAX_OPTION_SIZE; i++){
-
-        if(IS_PARAM_LEAF(param->options[i]))
-            continue;
-
-        if(strncmp(GET_CMD_NAME(param->options[i]), 
-                MODE_CHARACTER, strlen(MODE_CHARACTER)) == 0)
-            return 0;
-
-    }
-    return -1;
-}
-
-int
-insert_moding_capability(param_t *param){
-
-    assert(param);
-    if(param == &root)
-        return -1;
-    /*Do not insert mode capability in mode param itself,
-     * avoid chicken and egg problem here. Also, negate commands
-     * are also should not be mode capable*/
-
-    if(is_mode_exception_cmd(param) == 0)
-        return -1;
-
-    /*Bail if param is already mode capable*/
-    if(is_param_mode_capable(param) == 0)
-        return -1;
-
-    param_t * mode_param = calloc(1, sizeof(param_t));
-    init_param(mode_param, CMD, MODE_CHARACTER, mode_enter_callback , 0, INVALID, 0, "ENTER MODE");
-    param->options[0] = mode_param;
-    mode_param->parent = param;
-    return 0;
-}
 
 void
 libcli_register_param(param_t *parent, param_t *child){
+    
     int i = 0;
     if(!parent)
         parent = &root;
         
-    for(; i < MAX_OPTION_SIZE; i++){
+    if(!IS_PARAM_MODE_ENABLE(parent)){
+        parent->options[MODE_PARAM_INDEX] = libcli_get_mode_param();
+    }
+
+    if(!IS_PARAM_SUBOPTIONS_ENABLE(parent)){
+        parent->options[SUBOPTIONS_INDEX] = libcli_get_suboptions_param();
+    }
+
+    for(i = CHILDREN_START_INDEX; i <= CHILDREN_END_INDEX; i++){
         if(parent->options[i])
             continue;
-
-        if(insert_moding_capability(parent) == 0){
-            i++;
-            assert(i != MAX_OPTION_SIZE);
-        }
+        
         parent->options[i] = child;
         child->parent = parent;
         return;
