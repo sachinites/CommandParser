@@ -66,7 +66,6 @@ void
 start_shell(void);
 
 #define HIDE_PARAM(param_ptr)   ((param_ptr)->ishidden = 1)
-#define UNHIDE_PARAM(param_ptr) ((param_ptr)->ishidden = 0)
 #define IS_PARAM_HIDDEN(param_ptr)  ((param_ptr)->ishidden == 1)
 
 #endif

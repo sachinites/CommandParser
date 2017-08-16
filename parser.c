@@ -92,14 +92,16 @@ build_tlv_buffer(char **tokens,
                  op_mode enable_or_disable){ 
 
     int i = 0; 
-    param_t *param = get_cmd_tree_cursor();
     param_t *parent = NULL;
+    param_t *param = get_cmd_tree_cursor();
     CMD_PARSE_STATUS status = COMPLETE;
+
+
     memset(&tlv, 0, sizeof(tlv_struct_t));
 
     for(; i < token_cnt; i++){
-        parent = param;
         
+        parent = param;    
         param = find_matching_param(get_child_array_ptr(param), *(tokens +i));
 
         if(param){
@@ -166,8 +168,14 @@ build_tlv_buffer(char **tokens,
             else if(param == libcli_get_mode_param())
                 mode_enter_callback(parent, tlv_buff, MODE_UNKNOWN);
 
-            else
+            else{
+                if(get_current_branch_hook(param) == libcli_get_config_hook())
+                    enable_or_disable = CONFIG_ENABLE;
+                else
+                    enable_or_disable = OPERATIONAL;
+
                 INVOKE_APPLICATION_CALLBACK_HANDLER(param, tlv_buff, enable_or_disable);
+            }
 
             break;
 
@@ -198,7 +206,7 @@ parse_input_cmd(char *input, unsigned int len){
 
     if(token_cnt > 1 && 
             ((strncmp(tokens[0], "do", 2) == 0)) &&
-            (get_cmd_tree_cursor() != &root)) /*do commands are not allowed from root*/
+            (get_cmd_tree_cursor() != libcli_get_root())) /*do commands are not allowed from root*/
 
     {
         if(IS_CURRENT_MODE_CONFIG()) /*Do commands are allowed only when user is operating in config mode*/
@@ -230,7 +238,7 @@ parse_input_cmd(char *input, unsigned int len){
                 /*User is in the config mode only */
                 set_cmd_tree_cursor(old_cursor_state);
                 /*We need to rebuild the TLV buffer afresh*/
-                build_cmd_tree_leaves_data(tlv_buff, &root, get_cmd_tree_cursor());
+                build_cmd_tree_leaves_data(tlv_buff, libcli_get_root(), get_cmd_tree_cursor());
                 mark_checkpoint_serialize_buffer(tlv_buff);
             }
         }
@@ -245,7 +253,7 @@ parse_input_cmd(char *input, unsigned int len){
         go_one_level_up_cmd_tree(get_cmd_tree_cursor());
 
     else 
-        status = build_tlv_buffer(tokens, token_cnt, CONFIG_ENABLE); 
+        status = build_tlv_buffer(tokens, token_cnt, MODE_UNKNOWN); 
 
     free_tokens(tokens);
 

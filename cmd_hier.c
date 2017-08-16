@@ -29,15 +29,15 @@
 
 leaf_type_handler leaf_handler_array[LEAF_MAX];
 ser_buff_t *tlv_buff;
-param_t *cmd_tree_cursor = NULL;
+static param_t *cmd_tree_cursor = NULL;
 
 /*Default zero level commands hooks. */
-param_t root;
-param_t do_hook;
-param_t show;
-param_t debug;
-param_t config;
-param_t clear;
+static param_t root;
+static param_t do_hook;
+static param_t show;
+static param_t debug;
+static param_t config;
+static param_t clear;
 
 /* Default param Capabilities*/
 
