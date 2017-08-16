@@ -358,6 +358,7 @@ set_device_name(const char *cons_name){
     
     if(token_cnt > 1){
         strcat(console_name, " ");
+        string_space_trim(tokens[1]);
         strcat(console_name, tokens[1]);
     }
 }
