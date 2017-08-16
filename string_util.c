@@ -25,60 +25,63 @@
 
 static char a_str[CONS_INPUT_BUFFER_SIZE];
 
-char** str_split(char* _a_str, const char a_delim, size_t *token_cnt)
-{
-    char** result    = 0;
-    size_t count     = 0;
-    char* tmp        = NULL;
-    char* last_comma = 0;
-    char delim[2];
-    delim[0] = a_delim;
-    delim[1] = 0;
+static char * tokens[MAX_CMD_TREE_DEPTH];
+
+void
+init_token_array(){
+
+    int i = 0;
+    for(; i < MAX_CMD_TREE_DEPTH; i++){
+        tokens[i] = calloc(1, LEAF_VALUE_HOLDER_SIZE);
+    }
+}
+
+void
+re_init_tokens(){
+    
+    int i = 0;
+    for(; i < MAX_CMD_TREE_DEPTH; i++){
+        memset(tokens[i], 0, LEAF_VALUE_HOLDER_SIZE);
+    }
+}
+
+char** str_split2(char* _a_str, const char a_delim, size_t *token_cnt){
+   
+    char *token = NULL;
+    int i = 0;
 
     memset(a_str, 0, CONS_INPUT_BUFFER_SIZE);
     memcpy(a_str, _a_str, strlen(_a_str));
-    tmp = a_str;
 
-    /* Count how many elements will be extracted. */
-    while (*tmp)
-    {
-        if (a_delim == *tmp)
-        {
-            count++;
-            last_comma = tmp;
-        }
-        tmp++;
+    string_space_trim(a_str);
+
+    if(strlen(a_str) < 1){
+        *token_cnt = 0;
+        return NULL;
     }
 
-    /* Add space for trailing token. */
-    count += last_comma < (a_str + strlen(a_str) - 1);
-
-    /* Add space for terminating null string so caller
-     *      *        knows where the list of returned strings ends. */
-    count++;
-
-    result = (char **)malloc(sizeof(char*) * count);
-
-    if (result)
-    {
-        size_t idx  = 0;
-        char* token = strtok(a_str, delim);
-
-        string_space_trim(token);
-
-        while (token)
-        {
-            assert(idx < count);
-            *(result + idx++) = strdup(token);
-            token = strtok(0, delim);
-            string_space_trim(token);
-        }
-        assert(idx == count - 1);
-        *(result + idx) = 0;
+    token = strtok(a_str, &a_delim);
+    if(token){
+        strncpy(tokens[i], token, strlen(token));
+        i++;
     }
+    else{
+        *token_cnt = 0;
+        return NULL;
+    }
+    
+    /* walk through other tokens */
+    while( token != NULL ) 
+    {
+        token = strtok(NULL, &a_delim);
+        if(token){
+            strncpy(tokens[i], token, strlen(token));
+            i++;
+        }
+    } 
 
-    *token_cnt = count -1;
-    return result;
+    *token_cnt = i;
+    return &tokens[0];
 }
 
 void
@@ -107,16 +110,6 @@ string_space_trim(char *string){
     }
 
     memmove(string, ptr, len + 1);
-}
-
-void
-free_tokens(char **tokens){
-    int i = 0;
-    for ( ;*(tokens + i); i++)
-    {
-        free(*(tokens + i));
-    }
-    free(tokens);
 }
 
 

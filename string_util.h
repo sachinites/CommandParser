@@ -20,7 +20,8 @@
 #define __STRING_UTIL__
 #include <string.h>
 
-char** str_split(char* a_str, 
+
+char** str_split2(char* a_str, 
                  const char a_delim, 
                  size_t *token_cnt);
 
@@ -31,5 +32,9 @@ void
 print_tokens(char **tokens);
 
 void
-free_tokens(char **tokens);
+init_token_array();
+
+void
+re_init_tokens();
+
 #endif

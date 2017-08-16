@@ -137,6 +137,8 @@ get_str_leaf_type(leaf_type_t leaf_type){
             return "FLOAT";
         case IPV6:
             return "IPV6";
+        case BOOLEAN:
+            return "BOOLEAN";
         case LEAF_MAX:
             return "LEAF_MAX";
         default:
@@ -170,12 +172,14 @@ init_libcli(){
     leaf_handler_array[IPV4]    = ipv4_validation_handler;
     leaf_handler_array[IPV6]    = ipv6_validation_handler;
     leaf_handler_array[FLOAT]   = float_validation_handler;
-
+    leaf_handler_array[BOOLEAN] = boolean_validation_handler;
 
     set_device_name(DEFAULT_DEVICE_NAME);
-    
+   
+    /*Initialize the token array*/
+    init_token_array();
+     
     /*Initialise Capablities Params*/
-
     init_param(&mode_param, CMD, MODE_CHARACTER, mode_enter_callback , 0, INVALID, 0, "ENTER MODE");
     init_param(&suboptions_param, CMD, SUBOPTIONS_CHARACTER, display_sub_options_callback, 0, INVALID, 0, "Sub-Options"); 
 
@@ -207,7 +211,7 @@ init_libcli(){
 
     /*Hook up the show/debug/clear operational command in Do Hook*/
     init_param(&do_hook, CMD, "DO_HOOK", 0, 0, INVALID, 0, "operational commands shortcut");
-    do_hook.options[MODE_PARAM_INDEX] = libcli_get_mode_param();
+    do_hook.options[MODE_PARAM_INDEX] = libcli_get_suboptions_param(); // A hack, just fill it 
     do_hook.options[SUBOPTIONS_INDEX] = libcli_get_suboptions_param();
     do_hook.options[CHILDREN_START_INDEX] = &show;
     do_hook.options[CHILDREN_START_INDEX+1] = &debug;
@@ -348,7 +352,7 @@ set_device_name(const char *cons_name){
     assert(cons_name);
 
     if(strlen(console_name))
-        tokens = str_split(console_name, '>', &token_cnt);
+        tokens = str_split2(console_name, '>', &token_cnt);
     
     sprintf(console_name, "%s>", cons_name);
     
@@ -356,9 +360,6 @@ set_device_name(const char *cons_name){
         strcat(console_name, " ");
         strcat(console_name, tokens[1]);
     }
-
-    if(tokens)
-        free_tokens(tokens);
 }
 
 
@@ -397,8 +398,8 @@ _dump_one_cmd(param_t *param, unsigned short tabs){
 
     PRINT_TABS(tabs);
 
-    if(IS_PARAM_CMD(param))
-        printf("-->%s(%d)", GET_PARAM_CMD(param)->cmd_name, tabs);
+    if(IS_PARAM_CMD(param) || IS_PARAM_NO_CMD(param))
+        printf("-->%s(%d)", GET_CMD_NAME(param), tabs);
     else
         printf("-->%s(%d)", GET_LEAF_TYPE_STR(param), tabs);
 
@@ -427,7 +428,6 @@ void  enhanced_command_parser(void);
 void
 start_shell(void){
     command_parser();
-    //enhanced_command_parser();
 }
 
 /* Command Mode implementation */
@@ -470,7 +470,7 @@ goto_top_of_cmd_tree(param_t *curr_cmd_tree_cursor){
     } while(curr_cmd_tree_cursor != &root);
     
     reset_cmd_tree_cursor();
-    tokens = str_split(console_name, '>', &token_cnt);
+    tokens = str_split2(console_name, '>', &token_cnt);
     sprintf(console_name, "%s>", tokens[0]);
 }
 
@@ -496,7 +496,7 @@ go_one_level_up_cmd_tree(param_t *curr_cmd_tree_cursor){
      set_cmd_tree_cursor(curr_cmd_tree_cursor->parent);
 
      if(get_cmd_tree_cursor() == &root){
-        tokens = str_split(console_name, '>', &token_cnt);
+        tokens = str_split2(console_name, '>', &token_cnt);
         sprintf(console_name, "%s>", tokens[0]);
         reset_serialize_buffer(tlv_buff);
         return;
@@ -524,10 +524,9 @@ build_mode_console_name(param_t *dst_param){
     static char cmd_names[MAX_CMD_TREE_DEPTH][LEAF_VALUE_HOLDER_SIZE];
     char *admin_set_console_name = NULL;
 
-    tokens = str_split(console_name, '>', &token_cnt);
+    tokens = str_split2(console_name, '>', &token_cnt);
     admin_set_console_name = tokens[0];
     sprintf(console_name, "%s> ", admin_set_console_name);
-    free_tokens(tokens);
     
     do{
         assert(i != -1); 

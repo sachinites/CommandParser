@@ -203,7 +203,7 @@ parse_input_cmd(char *input, unsigned int len){
     size_t token_cnt = 0;
     CMD_PARSE_STATUS status = COMPLETE;
 
-    tokens = str_split(input, ' ', &token_cnt);
+    tokens = str_split2(input, ' ', &token_cnt);
     if(!tokens)
         return;
 
@@ -254,11 +254,14 @@ parse_input_cmd(char *input, unsigned int len){
 
     else if((strncmp(tokens[0], "exit", strlen("exit")) == 0) && (token_cnt == 1))
         go_one_level_up_cmd_tree(get_cmd_tree_cursor());
+    
+    else if((strncmp(tokens[0], "cls", strlen("cls")) == 0) && (token_cnt == 1))
+        clear_screen_handler(0, 0, MODE_UNKNOWN);
 
     else 
         status = build_tlv_buffer(tokens, token_cnt, MODE_UNKNOWN); 
 
-    free_tokens(tokens);
+    re_init_tokens();
 
     if(is_user_in_cmd_mode())
         restore_checkpoint_serialize_buffer(tlv_buff);

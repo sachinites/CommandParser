@@ -30,44 +30,55 @@ get_last_command();
 
 /*Default validation handlers for Data types*/
 
- int
+int
 int_validation_handler(leaf_t *leaf, char *value_passed){
-        /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__,
-         *                             get_str_leaf_type(leaf->leaf_type), value_passed);*/
-            return VALIDATION_SUCCESS;
+    /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__,
+     *                             get_str_leaf_type(leaf->leaf_type), value_passed);*/
+    return VALIDATION_SUCCESS;
 }
 
 
- int
+int
 string_validation_handler(leaf_t *leaf, char *value_passed){
-        /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__,
-         *                             get_str_leaf_type(leaf->leaf_type), value_passed);*/
-            return VALIDATION_SUCCESS;
+    /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__,
+     *                             get_str_leaf_type(leaf->leaf_type), value_passed);*/
+    return VALIDATION_SUCCESS;
 }
 
 
- int
+int
 ipv4_validation_handler(leaf_t *leaf, char *value_passed){
-        /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__,
-         *                             get_str_leaf_type(leaf->leaf_type), value_passed);*/
-            return VALIDATION_SUCCESS;
+    /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__,
+     *                             get_str_leaf_type(leaf->leaf_type), value_passed);*/
+    return VALIDATION_SUCCESS;
 }
 
 
- int
+int
 ipv6_validation_handler(leaf_t *leaf, char *value_passed){
-        /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__,
-         *                             get_str_leaf_type(leaf->leaf_type), value_passed);*/
-            return VALIDATION_SUCCESS;
+    /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__,
+     *                             get_str_leaf_type(leaf->leaf_type), value_passed);*/
+    return VALIDATION_SUCCESS;
 }
 
 
- int
+int
 float_validation_handler(leaf_t *leaf, char *value_passed){
-        /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__,
-         *                             get_str_leaf_type(leaf->leaf_type), value_passed);*/
-            return VALIDATION_SUCCESS;
+    /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__,
+     *                             get_str_leaf_type(leaf->leaf_type), value_passed);*/
+    return VALIDATION_SUCCESS;
 }
+
+int
+boolean_validation_handler(leaf_t *leaf, char *value_passed){
+
+    if((strncmp(value_passed, "TRUE", strlen("TRUE")) == 0) || 
+            (strncmp(value_passed, "FALSE", strlen("FALSE")) ==0))
+        return VALIDATION_SUCCESS;
+
+    return VALIDATION_FAILED;
+}
+
 
 /* Default command handlers */
 /*config console name <cons name>*/

@@ -18,8 +18,6 @@ clistd.o:clistd.c
 	${CC} ${CFLAGS} -c ${INCLUDES} clistd.c -o clistd.o
 testapp.o:testapp.c
 	${CC} ${CFLAGS} -c ${INCLUDES} testapp.c -o testapp.o
-enparser.o:enparser.c
-	${CC} ${CFLAGS} -c ${INCLUDES} enparser.c -o enparser.o 
 ${CLILIB}: ${OBJ}
 	ar rs ${CLILIB} ${OBJ}
 clean:
@@ -28,3 +26,9 @@ clean:
 	rm ${CLILIB}
 install:
 	cp ${CLILIB} /usr/local/lib/
+	cp libcli.h /usr/include/
+	cp cmdtlv.h /usr/include/
+uninstall:
+	rm /usr/local/lib/${CLILIB}
+	rm /usr/include/libcli.h
+	rm /usr/include/cmdtlv.h
