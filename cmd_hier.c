@@ -33,6 +33,7 @@ param_t *cmd_tree_cursor = NULL;
 
 /*Default zero level commands hooks. */
 param_t root;
+param_t do_hook;
 param_t show;
 param_t debug;
 param_t config;
@@ -59,6 +60,11 @@ libcli_get_suboptions_param(){
 param_t *
 libcli_get_root(void){
     return &root;
+}
+
+param_t *
+libcli_get_do_hook(void){
+    return &do_hook;
 }
 
 param_t *
@@ -195,9 +201,17 @@ init_libcli(){
     init_param(&config, CMD, "config", config_mode_enter_handler, 0, INVALID, 0, "config cmds");
     libcli_register_param(&root, &config);
 
-    /*configure hook*/
+    /*clear hook*/
     init_param(&clear, CMD, "clear", 0, 0, INVALID, 0, "clear cmds");
     libcli_register_param(&root, &clear);
+
+    /*Hook up the show/debug/clear operational command in Do Hook*/
+    init_param(&do_hook, CMD, "DO_HOOK", 0, 0, INVALID, 0, "operational commands shortcut");
+    do_hook.options[MODE_PARAM_INDEX] = libcli_get_mode_param();
+    do_hook.options[SUBOPTIONS_INDEX] = libcli_get_suboptions_param();
+    do_hook.options[CHILDREN_START_INDEX] = &show;
+    do_hook.options[CHILDREN_START_INDEX+1] = &debug;
+    do_hook.options[CHILDREN_START_INDEX+2] = &clear; 
 
     /*configure repeat*/
     static param_t repeat;

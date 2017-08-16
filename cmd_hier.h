@@ -115,6 +115,9 @@ param_t *
 libcli_get_no_hook(void);
 
 param_t *
+libcli_get_do_hook(void);
+
+param_t *
 libcli_get_root(void);
 
 param_t *
