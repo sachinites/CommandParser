@@ -58,6 +58,9 @@ init_param(param_t *param,
 void 
 libcli_register_param(param_t *parent, param_t *child);
 
+/*After this call, libcli_register_param MUST not be invoked on param*/
+void
+support_cmd_negation(param_t *param);
 
 void
 dump_cmd_tree();

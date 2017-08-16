@@ -79,7 +79,7 @@ config_console_name_handler(param_t *param, ser_buff_t *b, op_mode enable_or_dis
     tlv_struct_t *tlv = NULL;
     int i = 0;
 
-    TLV_LOOP(b, tlv, i){
+    TLV_LOOP_NEW(b, tlv, i){
         if(enable_or_disable == CONFIG_ENABLE)
             set_device_name(tlv->value);
         else{
@@ -134,7 +134,7 @@ display_sub_options_callback(param_t *param, ser_buff_t *b, op_mode enable_or_di
             if(IS_PARAM_HIDDEN(param->options[i]))
                 continue;
 
-            if(IS_PARAM_CMD(param->options[i])){
+            if(IS_PARAM_CMD(param->options[i]) || IS_PARAM_NO_CMD(param->options[i])){
                 printf(ANSI_COLOR_MAGENTA "nxt cmd  -> %-31s   |   %s\n" ANSI_COLOR_RESET, GET_CMD_NAME(param->options[i]), GET_PARAM_HELP_STRING(param->options[i]));
                 continue;
             }
@@ -193,5 +193,11 @@ config_mode_enter_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disab
     set_cmd_tree_cursor(param);
     build_mode_console_name(param);
     mark_checkpoint_serialize_buffer(b);
+    return 0;
+}
+
+int
+negate_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
+    printf("Command Negation - Type the cmd following to Negate\n");
     return 0;
 }

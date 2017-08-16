@@ -248,6 +248,11 @@ init_libcli(){
     HIDE_PARAM(&end_cmd);
     libcli_register_param(0, &end_cmd);
 
+    /*Command Negation API Should be called by application and not by infra
+     * else application would not be allowed to add more children into config 
+     * param*/
+    //support_cmd_negation(&config);
+    
     /* Resgister CTRL-C signal handler*/
     signal(SIGINT, ctrlC_signal_handler);
 }
@@ -269,26 +274,70 @@ init_param(param_t *param,                               /* pointer to static pa
         strncpy(GET_CMD_NAME(param), cmd_name, MIN(CMD_NAME_SIZE, strlen(cmd_name)));
         GET_CMD_NAME(param)[CMD_NAME_SIZE -1] = '\0';
     }
-    else{
+    else if(param_type == LEAF){
         GET_PARAM_LEAF(param) = calloc(1, sizeof(leaf_t));
         param->param_type = LEAF;
         GET_PARAM_LEAF(param)->leaf_type = leaf_type;
         param->cmd_type.leaf->user_validation_cb_fn = user_validation_cb_fn;
-        strncpy(GET_PARAM_HELP_STRING(param), help, MIN(PARAM_HELP_STRING_SIZE, strlen(help)));
-        GET_PARAM_HELP_STRING(param)[PARAM_HELP_STRING_SIZE -1] = '\0';
         strncpy(GET_LEAF_ID(param), leaf_id, MIN(LEAF_ID_SIZE, strlen(leaf_id)));
         GET_LEAF_ID(param)[LEAF_ID_SIZE -1] = '\0';
+    }
+    else if(param_type == NO_CMD){
+        GET_PARAM_CMD(param) = calloc(1, sizeof(cmd_t));
+        param->param_type = NO_CMD;
+        strncpy(GET_CMD_NAME(param), NEGATE_CHARACTER, strlen(NEGATE_CHARACTER));
+        GET_CMD_NAME(param)[CMD_NAME_SIZE -1] = '\0';
     }
 
     param->ishidden = 0;
     param->parent = NULL;
     param->callback = callback;
     strncpy(GET_PARAM_HELP_STRING(param), help, MIN(PARAM_HELP_STRING_SIZE, strlen(help)));
+    GET_PARAM_HELP_STRING(param)[PARAM_HELP_STRING_SIZE -1] = '\0';
 
     for(; i < MAX_OPTION_SIZE; i++){
         param->options[i] = NULL;
     }
 }
+
+void
+support_cmd_negation(param_t *param){
+    
+    int i = 0;
+    assert(param);
+    assert(get_current_branch_hook(param) == libcli_get_config_hook());
+
+    param_t *negate_param = find_matching_param(&param->options[0], NEGATE_CHARACTER);
+
+    if(negate_param && IS_PARAM_NO_CMD(negate_param)){
+        printf("Error : Attempt to add Duplicate Negate param in cmd : %s\n", GET_CMD_NAME(param));
+        return;
+    }
+
+    param_t *no_param = calloc(1, sizeof(param_t));
+    init_param(no_param, NO_CMD, NEGATE_CHARACTER, negate_callback, 0, INVALID, 0, "Command Negation");
+   
+    /*We cant leave the MODE_PARAM_INDEX empty, 
+     * so a hack - fill it with suboptions param. I dont see any implication of this.
+     * We dont support MODE with negate cmd*/ 
+
+    no_param->options[MODE_PARAM_INDEX] = libcli_get_suboptions_param();//libcli_get_mode_param();
+    no_param->options[SUBOPTIONS_INDEX] = libcli_get_suboptions_param();
+    
+    for(i = CHILDREN_START_INDEX; i <= CHILDREN_END_INDEX; i++){
+        if(param->options[i]){
+            no_param->options[i] = param->options[i];
+            continue;
+        }
+        break;
+    }
+
+    assert(i <= CHILDREN_END_INDEX);
+    param->options[i] = no_param;
+    no_param->parent = param;
+    return;
+}
+
 
 void
 set_device_name(const char *cons_name){

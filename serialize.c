@@ -82,6 +82,10 @@ mark_checkpoint_serialize_buffer(ser_buff_t *b){
     b->checkpoint = b->next;
 }
 
+int
+get_serialize_buffer_checkpoint_offset(ser_buff_t *b){
+    return b->checkpoint;
+}
 
 void serialize_int(ser_buff_t *b, int data){
     if (b == NULL) assert(0);

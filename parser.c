@@ -103,7 +103,7 @@ build_tlv_buffer(char **tokens,
         
         parent = param;    
         param = find_matching_param(get_child_array_ptr(param), *(tokens +i));
-
+    
         if(param){
             if(IS_PARAM_LEAF(param)){
 
@@ -133,7 +133,9 @@ build_tlv_buffer(char **tokens,
                 break;
             }
             else{
-                /*printf("token[%d] = %s found in cmd tree\n", i, *(tokens +i));*/
+                if(IS_PARAM_NO_CMD(param)){
+                    enable_or_disable = CONFIG_DISABLE;
+                }
                 continue;
             }
         }
@@ -169,8 +171,9 @@ build_tlv_buffer(char **tokens,
                 mode_enter_callback(parent, tlv_buff, MODE_UNKNOWN);
 
             else{
-                if(get_current_branch_hook(param) == libcli_get_config_hook())
-                    enable_or_disable = CONFIG_ENABLE;
+                if(get_current_branch_hook(param) == libcli_get_config_hook() &&
+                    enable_or_disable != CONFIG_DISABLE)
+                        enable_or_disable = CONFIG_ENABLE;
                 else
                     enable_or_disable = OPERATIONAL;
 

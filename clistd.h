@@ -76,4 +76,7 @@ end_cmd_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable);
 int
 config_mode_enter_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable);
 
+int
+negate_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable);
+
 #endif /* __CLISTD__ */

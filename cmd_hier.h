@@ -54,7 +54,8 @@ typedef CLI_VAL_RC (*leaf_type_handler)(leaf_t *leaf, char *value_passed);
 
 typedef enum{
     CMD,
-    LEAF
+    LEAF,
+    NO_CMD
 } param_type_t;
 
 typedef union _param_t{
@@ -80,6 +81,7 @@ get_str_leaf_type(leaf_type_t leaf_type);
 
 #define GET_PARAM_CMD(param)    (param->cmd_type.cmd)
 #define GET_PARAM_LEAF(param)   (param->cmd_type.leaf)
+#define IS_PARAM_NO_CMD(param)  (param->param_type == NO_CMD)
 #define IS_PARAM_CMD(param)     (param->param_type == CMD)
 #define IS_PARAM_LEAF(param)    (param->param_type == LEAF)
 #define GET_LEAF_TYPE_STR(param)    (get_str_leaf_type(GET_PARAM_LEAF(param)->leaf_type))

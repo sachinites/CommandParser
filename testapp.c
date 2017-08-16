@@ -204,6 +204,8 @@ main(int argc, char **argv){
     init_param(&group_ip2, LEAF, 0, mtrace_handler, 0, IPV4, "group-ip", "Multicast Group Ipv4 address");
     libcli_register_param(&group2, &group_ip2);
 
+    support_cmd_negation(config);
+
     start_shell();
     return 0;
 }

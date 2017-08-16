@@ -39,4 +39,5 @@
 #define CHILDREN_START_INDEX    2
 #define CHILDREN_END_INDEX      (MAX_OPTION_SIZE -1)
 
+#define NEGATE_CHARACTER        "no"
 #endif /* __LIBCLICONSTANTS__ */

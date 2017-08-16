@@ -45,6 +45,7 @@ void free_serialize_buffer(ser_buff_t *b);
 void truncate_serialize_buffer(ser_buff_t **b);
 void reset_serialize_buffer(ser_buff_t *b);
 void restore_checkpoint_serialize_buffer(ser_buff_t *b);
+int get_serialize_buffer_checkpoint_offset(ser_buff_t *b);
 void mark_checkpoint_serialize_buffer(ser_buff_t *b);
 /* Details*/
 void print_buffer_details(ser_buff_t *b, const char *fn, int lineno);
