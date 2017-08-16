@@ -261,7 +261,7 @@ parse_input_cmd(char *input, unsigned int len){
     else 
         status = build_tlv_buffer(tokens, token_cnt, MODE_UNKNOWN); 
 
-    re_init_tokens();
+    re_init_tokens(MAX_CMD_TREE_DEPTH);
 
     if(is_user_in_cmd_mode())
         restore_checkpoint_serialize_buffer(tlv_buff);

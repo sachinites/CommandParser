@@ -35,6 +35,6 @@ void
 init_token_array();
 
 void
-re_init_tokens();
+re_init_tokens(int token_cnt);
 
 #endif

@@ -37,10 +37,10 @@ init_token_array(){
 }
 
 void
-re_init_tokens(){
+re_init_tokens(int token_cnt){
     
     int i = 0;
-    for(; i < MAX_CMD_TREE_DEPTH; i++){
+    for(; i < token_cnt; i++){
         memset(tokens[i], 0, LEAF_VALUE_HOLDER_SIZE);
     }
 }
