@@ -275,6 +275,7 @@ parse_input_cmd(char *input, unsigned int len){
 void
 command_parser(void){
 
+    printf("run - \'show help\' cmd to learn more");
     place_console(1);
     while(1){
 

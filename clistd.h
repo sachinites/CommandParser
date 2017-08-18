@@ -85,4 +85,7 @@ negate_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable);
 int
 supportsave_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable);
 
+int
+show_help_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable);
+
 #endif /* __CLISTD__ */

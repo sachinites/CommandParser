@@ -188,6 +188,9 @@ init_libcli(){
     init_param(&show, CMD, "show", 0, 0, INVALID, 0, "show cmds");
     libcli_register_param(&root, &show);
 
+    static param_t help;
+    init_param(&help, CMD, "help", show_help_handler, 0, INVALID, 0, "help how to use this CLI");
+    libcli_register_param(&show, &help);
     /*show history*/
     static param_t history;
     init_param(&history, CMD, "history", show_history_callback, 0, INVALID, 0, "Command history");
