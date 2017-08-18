@@ -171,15 +171,17 @@ build_tlv_buffer(char **tokens,
                 mode_enter_callback(parent, tlv_buff, MODE_UNKNOWN);
 
             else{
-                if(get_current_branch_hook(param) == libcli_get_config_hook() &&
-                    enable_or_disable != CONFIG_DISABLE)
-                        enable_or_disable = CONFIG_ENABLE;
-                else
+                param_t *curr_hook = get_current_branch_hook(param);
+
+                if(curr_hook == libcli_get_config_hook() &&
+                        enable_or_disable != CONFIG_DISABLE)
+                    enable_or_disable = CONFIG_ENABLE;
+
+                else if(curr_hook != libcli_get_config_hook())
                     enable_or_disable = OPERATIONAL;
 
                 INVOKE_APPLICATION_CALLBACK_HANDLER(param, tlv_buff, enable_or_disable);
             }
-
             break;
 
         case USER_INVALID_LEAF:

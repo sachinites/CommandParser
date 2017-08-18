@@ -225,6 +225,9 @@ supportsave_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
             signal(SIGABRT, terminate_signal_handler);/*when process abort itself*/
             break;
         case CONFIG_DISABLE:
+            signal(SIGTERM, SIG_DFL);/*When process is killed*/
+            signal(SIGSEGV, SIG_DFL);/*When process access illegal memory*/
+            signal(SIGABRT, SIG_DFL);/*when process abort itself*/
             break;
         default:
             assert(0);
