@@ -205,6 +205,14 @@ init_libcli(){
     init_param(&config, CMD, "config", config_mode_enter_handler, 0, INVALID, 0, "config cmds");
     libcli_register_param(&root, &config);
 
+    static param_t supportsave;
+    init_param(&supportsave, CMD, "supportsave", 0 , 0, INVALID, 0, "Collect Support Save Data");
+    libcli_register_param(&config, &supportsave);
+
+    static param_t supportsave_enable;
+    init_param(&supportsave_enable, CMD, "enable", supportsave_handler , 0, INVALID, 0, "enable/disable Support Save Data Collection");
+    libcli_register_param(&supportsave, &supportsave_enable);
+
     /*clear hook*/
     init_param(&clear, CMD, "clear", 0, 0, INVALID, 0, "clear cmds");
     libcli_register_param(&root, &clear);

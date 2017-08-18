@@ -3,7 +3,7 @@ CFLAGS=-g -Wall
 INCLUDES=-I .
 CLILIB=libcli.a
 TARGET:exe ${CLILIB}
-OBJ=cmd_hier.o parser.o serialize.o string_util.o clistd.o
+OBJ=cmd_hier.o parser.o serialize.o string_util.o clistd.o clicbext.o
 exe:testapp.o ${CLILIB}
 	${CC} ${CFLAGS} ${INCLUDES} testapp.o -o exe -L . -lcli
 cmd_hier.o:cmd_hier.c
@@ -16,6 +16,8 @@ string_util.o:string_util.c
 	${CC} ${CFLAGS} -c ${INCLUDES} string_util.c -o string_util.o
 clistd.o:clistd.c
 	${CC} ${CFLAGS} -c ${INCLUDES} clistd.c -o clistd.o
+clicbext.o:clicbext.c
+	${CC} ${CFLAGS} -c ${INCLUDES} clicbext.c -o clicbext.o
 testapp.o:testapp.c
 	${CC} ${CFLAGS} -c ${INCLUDES} testapp.c -o testapp.o
 ${CLILIB}: ${OBJ}

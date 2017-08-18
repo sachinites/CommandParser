@@ -26,16 +26,15 @@
 #define PARAM_HELP_STRING_SIZE  64
 #define CONS_INPUT_BUFFER_SIZE  2048
 #define TERMINAL_NAME_SIZE      CONS_INPUT_BUFFER_SIZE
-#define TLV_MAX_BUFFER_SIZE     1048
+#define TLV_MAX_BUFFER_SIZE     1024
 
 #define DEFAULT_DEVICE_NAME     "root@juniper"
 #define MODE_CHARACTER          "/"
 #define SUBOPTIONS_CHARACTER    "?"
-#define MAX_OPTION_SIZE         30
+#define MAX_OPTION_SIZE         16
 
 #define MODE_PARAM_INDEX        0
 #define SUBOPTIONS_INDEX        1
-//#define NEGATION_INDEX          2
 #define CHILDREN_START_INDEX    2
 #define CHILDREN_END_INDEX      (MAX_OPTION_SIZE -1)
 

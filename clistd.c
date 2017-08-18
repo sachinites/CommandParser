@@ -21,6 +21,8 @@
 #include "cmdtlv.h"
 #include "libcli.h"
 #include "css.h"
+#include <signal.h>
+#include "clicbext.h"
 
 extern void
 parse_input_cmd(char *input, unsigned int len);
@@ -210,5 +212,22 @@ config_mode_enter_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disab
 int
 negate_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
     printf("Command Negation - Type the cmd following to Negate\n");
+    return 0;
+}
+
+int
+supportsave_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
+
+    switch(enable_or_disable){
+        case CONFIG_ENABLE:
+            signal(SIGTERM, terminate_signal_handler);/*When process is killed*/
+            signal(SIGSEGV, terminate_signal_handler);/*When process access illegal memory*/
+            signal(SIGABRT, terminate_signal_handler);/*when process abort itself*/
+            break;
+        case CONFIG_DISABLE:
+            break;
+        default:
+            assert(0);
+    }
     return 0;
 }
