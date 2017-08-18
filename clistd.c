@@ -243,7 +243,7 @@ show_help_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
     printf("1. Use %s Character after the command to enter command mode\n", MODE_CHARACTER);
     printf("2. Use %s Character after the command to see possible follow up suboptions\n", SUBOPTIONS_CHARACTER);
     printf("3. Use 'do' from within the config branch to directly trigger operational commands\n");
-    printf("4. Ready made commands which is shipped by default:\n");
+    printf("4. Built-in commands:\n");
     printf("    a. cls - clear screen\n");
     printf("    b. end - jump to top of cmd tree\n");
     printf("    c. exit - jump one level up of command tree\n");
@@ -252,5 +252,6 @@ show_help_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
     printf("    f. debug show cmdtree - Show entire command tree\n");
     printf("    g. show history - show history of commands triggered\n");
     printf("    h. repeat - repeat the last command\n");
+    printf(ANSI_COLOR_YELLOW "                      Author : Abhishek Sagar, Juniper Networks\n" ANSI_COLOR_RESET);
     return 0;
 }

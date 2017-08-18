@@ -24,12 +24,6 @@
 #include "libcliid.h"
 #include "clistd.h"
 
-/* If you modify the below Macro, pls put 
- * as many zeroes in NULL_OPTIONS expansion as well*/
-#define NULL_OPTIONS    {0,0,0,0,0,0,0,0,0,0,\
-                         0,0,0,0,0,0,0,0,0,0,\
-                         0,0,0,0,0,0,0,0,0,0,}
-
 #include "cliconst.h"
 
 typedef struct serialized_buffer ser_buff_t;
