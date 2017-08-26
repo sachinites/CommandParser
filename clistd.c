@@ -255,3 +255,43 @@ show_help_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
     printf(ANSI_COLOR_YELLOW "                      Author : Abhishek Sagar, Juniper Networks\n" ANSI_COLOR_RESET);
     return 0;
 }
+
+static void
+dump_all_commands(param_t *root, unsigned int index){
+
+        if(!root)
+            return;
+
+        if(IS_PARAM_CMD(root)){
+            untokenize(index);
+            tokenize(GET_CMD_NAME(root), strlen(GET_CMD_NAME(root)), index);
+        }
+        else if(IS_PARAM_LEAF(root)){
+            untokenize(index);
+            tokenize(GET_LEAF_ID(root), strlen(GET_LEAF_ID(root)), index);
+        }
+
+        unsigned int i = CHILDREN_START_INDEX;
+
+        for( ; i <= CHILDREN_END_INDEX; i++)
+            dump_all_commands(root->options[i], index+1);
+        
+        if(IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(root)){
+            print_tokens(index + 1);
+            printf("\n");
+        }
+}
+
+int
+show_resgistered_cmd_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
+    
+    /*Implement DFS and dump all complete commands*/
+    re_init_tokens(MAX_CMD_TREE_DEPTH);
+
+    param_t *root = libcli_get_root();
+    
+    unsigned int index = 0;
+    dump_all_commands(root, index);
+    return 0;
+}
+

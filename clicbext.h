@@ -13,7 +13,7 @@
  *         Author:  Er. Abhishek Sagar, Networking Developer (AS), sachinites@gmail.com
  *        Company:  Brocade Communications(Jul 2012- Mar 2016), Current : Juniper Networks(Apr 2017 - Present)
  *        
- *        This file is part of the XXX distribution (https://github.com/sachinites).
+ *        This file is part of the CommandParser distribution (https://github.com/sachinites).
  *        Copyright (c) 2017 Abhishek Sagar.
  *        This program is free software: you can redistribute it and/or modify
  *        it under the terms of the GNU General Public License as published by  

@@ -200,6 +200,15 @@ init_libcli(){
     init_param(&no_of_commands, LEAF, "N", show_history_callback, 0, INT, "N", "No Of Commands to fetch");  
     libcli_register_param(&history, &no_of_commands);
 
+    /*show registered commands*/
+    static param_t show_resgistered;
+    init_param(&show_resgistered, CMD, "registered", 0, 0, INVALID, 0, "registered");
+    libcli_register_param(&show, &show_resgistered);
+
+    static param_t show_resgistered_cmds;
+    init_param(&show_resgistered_cmds, CMD, "commands", show_resgistered_cmd_handler, 0, INVALID, 0, "commands");
+    libcli_register_param(&show_resgistered, &show_resgistered_cmds); 
+
     /*debug hook*/
     init_param(&debug, CMD, "debug", 0, 0, INVALID, 0, "debug cmds");
     libcli_register_param(&root, &debug);

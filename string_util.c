@@ -45,6 +45,27 @@ re_init_tokens(int token_cnt){
     }
 }
 
+void
+tokenize(char *token, unsigned int size, unsigned int index){
+    
+    if(size > LEAF_VALUE_HOLDER_SIZE)
+        assert(0);
+
+    strncpy(tokens[index], token, size);
+}
+
+void
+untokenize(unsigned int index){
+
+    memset(tokens[index], 0, LEAF_VALUE_HOLDER_SIZE);
+}
+
+char *
+get_token(unsigned int index){
+
+    return tokens[index];
+}
+
 char** str_split2(char* _a_str, const char a_delim, size_t *token_cnt){
    
     char *token = NULL;
@@ -114,11 +135,14 @@ string_space_trim(char *string){
 
 
 void
-print_tokens(char **tokens){
-    int i = 0;
-    for ( ;*(tokens + i); i++)
+print_tokens(unsigned int index){
+    
+    unsigned int i = 0;
+    for ( ; i < index; i++)
     {
-        printf("%d. %s\n", i, (*(tokens + i)));
+        if(tokens[i] == NULL)
+            break;
+
+        printf("%s ", tokens[i]);
     }
-    free(tokens);
 }
