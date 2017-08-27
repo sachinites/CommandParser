@@ -23,6 +23,7 @@
 #include "css.h"
 #include <signal.h>
 #include "clicbext.h"
+#include "string_util.h"
 
 extern void
 parse_input_cmd(char *input, unsigned int len);
@@ -260,6 +261,9 @@ static void
 dump_all_commands(param_t *root, unsigned int index){
 
         if(!root)
+            return;
+
+        if(IS_PARAM_NO_CMD(root))
             return;
 
         if(IS_PARAM_CMD(root)){
