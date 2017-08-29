@@ -191,14 +191,18 @@ init_libcli(){
     static param_t help;
     init_param(&help, CMD, "help", show_help_handler, 0, INVALID, 0, "help how to use this CLI");
     libcli_register_param(&show, &help);
+    set_param_cmd_code(&help, SHOW_HELP);
+
     /*show history*/
-    static param_t history;
-    init_param(&history, CMD, "history", show_history_callback, 0, INVALID, 0, "Command history");
-    libcli_register_param(&show, &history);
-    
+    static param_t show_history;
+    init_param(&show_history, CMD, "history", show_history_callback, 0, INVALID, 0, "Command history");
+    libcli_register_param(&show, &show_history);
+    set_param_cmd_code(&show_history, SHOW_HISTORY);
+
     static param_t no_of_commands;
     init_param(&no_of_commands, LEAF, "N", show_history_callback, 0, INT, "N", "No Of Commands to fetch");  
-    libcli_register_param(&history, &no_of_commands);
+    libcli_register_param(&show_history, &no_of_commands);
+    set_param_cmd_code(&no_of_commands, SHOW_HISTORY_N);
 
     /*show registered commands*/
     static param_t show_resgistered;
@@ -208,6 +212,7 @@ init_libcli(){
     static param_t show_resgistered_cmds;
     init_param(&show_resgistered_cmds, CMD, "commands", show_resgistered_cmd_handler, 0, INVALID, 0, "commands");
     libcli_register_param(&show_resgistered, &show_resgistered_cmds); 
+    set_param_cmd_code(&show_resgistered_cmds, SHOW_REGISTERED_COMMANDS);
 
     /*debug hook*/
     init_param(&debug, CMD, "debug", 0, 0, INVALID, 0, "debug cmds");
@@ -224,6 +229,7 @@ init_libcli(){
     static param_t supportsave_enable;
     init_param(&supportsave_enable, CMD, "enable", supportsave_handler , 0, INVALID, 0, "enable/disable Support Save Data Collection");
     libcli_register_param(&supportsave, &supportsave_enable);
+    set_param_cmd_code(&supportsave_enable, CONFIG_SUPPORTSAVE_ENABLE);
 
     /*clear hook*/
     init_param(&clear, CMD, "clear", 0, 0, INVALID, 0, "clear cmds");
@@ -255,6 +261,7 @@ init_libcli(){
     static param_t config_console_name_name;
     init_param(&config_console_name_name, LEAF, 0, config_console_name_handler, 0, STRING, "cons-name", "Name of Console"); 
     libcli_register_param(&config_console_name, &config_console_name_name);
+    set_param_cmd_code(&config_console_name_name, CONFIG_CONSOLEN_NAME_NAME);
 
     /* Install clear command "cls"*/
     static param_t cls;
@@ -322,6 +329,16 @@ init_param(param_t *param,                               /* pointer to static pa
     for(; i < MAX_OPTION_SIZE; i++){
         param->options[i] = NULL;
     }
+
+    param->CMDCODE = -1;
+}
+
+void
+set_param_cmd_code(param_t *param, int cmd_code){
+
+    if(param->callback == NULL)
+        assert(0);
+    param->CMDCODE = cmd_code;
 }
 
 void

@@ -44,6 +44,9 @@ libcli_get_config_hook(void);
 param_t *
 libcli_get_clear_hook(void);
 
+void
+set_param_cmd_code(param_t *param, int cmd_code);
+
 /*See the definition of this fn to know about arguments*/
 void
 init_param(param_t *param,              

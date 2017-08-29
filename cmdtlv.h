@@ -33,23 +33,14 @@ typedef struct tlv_struct{
 } tlv_struct_t;
 #pragma pack(pop)
 
+#define EXTRACT_CMD_CODE(ser_buff_ptr)  \
+    atoi(((tlv_struct_t *)(ser_buff_ptr->b) + (get_serialize_buffer_size(ser_buff_ptr)/sizeof(tlv_struct_t) -1))->value)
+
 #define TLV_LOOP(ser_buff, tlvptr, i)                                                   \
     assert(ser_buff);                                                                   \
     tlvptr = (tlv_struct_t *)(ser_buff->b);                                             \
     i = 0;                                                                              \
-    for(; i < (get_serialize_buffer_size(ser_buff)/sizeof(tlv_struct_t)); i++, tlvptr++)
-
-#define TLV_LOOP_OLD(ser_buff, tlvptr, i)                                               \
-    assert(ser_buff);                                                                   \
-    tlvptr = (tlv_struct_t *)(ser_buff->b);                                             \
-    i = 0;                                                                              \
-    for(; i < (get_serialize_buffer_checkpoint_offset(ser_buff)/sizeof(tlv_struct_t)); i++, tlvptr++)
-
-#define TLV_LOOP_NEW(ser_buff, tlvptr, i)                                                        \
-    assert(ser_buff);                                                                            \
-    tlvptr = (tlv_struct_t *)(ser_buff->b + get_serialize_buffer_checkpoint_offset(ser_buff));   \
-    i = 0;                                                                                       \
-    for(; i < ((get_serialize_buffer_size(ser_buff) - get_serialize_buffer_checkpoint_offset(ser_buff))/sizeof(tlv_struct_t)); i++, tlvptr++)
+    for(; i < (get_serialize_buffer_size(ser_buff)/sizeof(tlv_struct_t) -1); i++, tlvptr++)
 
 #define tlv_copy_leaf_id(tlvptr, dst)                          \
     strncpy(dst, tlvptr->leaf_id, strlen(tlvptr->leaf_id));    \
@@ -87,13 +78,8 @@ dump_tlv_serialized_buffer(ser_buff_t *tlv_ser_buff){
     int i = 0;
     tlv_struct_t *tlv = NULL;
 
-    printf("OLD TLVs...\n");
-    TLV_LOOP_OLD(tlv_ser_buff, tlv, i){
-        print_tlv_content(tlv);
-        printf("\n");
-    }
-    printf("NEW TLVs...\n");
-    TLV_LOOP_NEW(tlv_ser_buff, tlv, i){
+    printf("cmd code = %d\n", EXTRACT_CMD_CODE(tlv_ser_buff));
+    TLV_LOOP(tlv_ser_buff, tlv, i){
         print_tlv_content(tlv);
         printf("\n");
     }

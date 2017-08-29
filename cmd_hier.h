@@ -65,6 +65,7 @@ struct _param_t_{
     char help[PARAM_HELP_STRING_SIZE];
     param_t *options[MAX_OPTION_SIZE];
     param_t *parent;
+    int CMDCODE;
 };
 
 char*

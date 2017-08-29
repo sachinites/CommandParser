@@ -39,4 +39,19 @@
 #define CHILDREN_END_INDEX      (MAX_OPTION_SIZE -1)
 
 #define NEGATE_CHARACTER        "no"
+
+
+
+/* Default Command Codes*/
+/*CMD codes need not be unique, but should be unique with in same command sharing 
+ * the same command handler. For example, cmd code of SHOW_HISTORY and SHOW_HISTORY_N 
+ * should be distinct because both commands have the same cmd handler */
+
+#define SHOW_HELP                   1
+#define SHOW_HISTORY                2
+#define SHOW_HISTORY_N              3
+#define SHOW_REGISTERED_COMMANDS    4
+#define CONFIG_SUPPORTSAVE_ENABLE   5
+#define CONFIG_CONSOLEN_NAME_NAME   6
+
 #endif /* __LIBCLICONSTANTS__ */

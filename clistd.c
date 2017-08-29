@@ -93,7 +93,7 @@ config_console_name_handler(param_t *param, ser_buff_t *b, op_mode enable_or_dis
     tlv_struct_t *tlv = NULL;
     int i = 0;
 
-    TLV_LOOP_NEW(b, tlv, i){
+    TLV_LOOP(b, tlv, i){
         if(enable_or_disable == CONFIG_ENABLE)
             set_device_name(tlv->value);
         else{
@@ -127,9 +127,10 @@ mode_enter_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
     }
     set_cmd_tree_cursor(param);
     build_mode_console_name(param);
-    mark_checkpoint_serialize_buffer(b);
+    
     if(IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(param))
         INVOKE_APPLICATION_CALLBACK_HANDLER(param, b, enable_or_disable);
+
     return 0;
 }
  

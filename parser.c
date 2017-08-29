@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "string_util.h"
 #include "cmdtlv.h"
 #include "cliconst.h"
@@ -38,6 +39,8 @@ place_console(char new_line){
 
 static char cons_input_buffer[CONS_INPUT_BUFFER_SIZE];
 static char last_command_input_buffer[CONS_INPUT_BUFFER_SIZE];
+
+static tlv_struct_t command_code_tlv;
 
 typedef enum{
     COMPLETE,
@@ -167,8 +170,16 @@ build_tlv_buffer(char **tokens,
             if(param == libcli_get_suboptions_param())
                 display_sub_options_callback(parent, 0, MODE_UNKNOWN);
 
-            else if(param == libcli_get_mode_param())
-                mode_enter_callback(parent, tlv_buff, MODE_UNKNOWN);
+            else if(param == libcli_get_mode_param()){
+                
+                memset(command_code_tlv.value, 0, LEAF_VALUE_HOLDER_SIZE);
+                sprintf(command_code_tlv.value, "%d", parent->CMDCODE);
+                /*Let us checkpoint the ser buffer before adding the commandcode, 
+                 * because we would not want cmd code in subsequent comds in mode*/
+                mark_checkpoint_serialize_buffer(tlv_buff);
+                collect_tlv(tlv_buff, &command_code_tlv);
+                mode_enter_callback(parent, tlv_buff, enable_or_disable);
+            }
 
             else{
                 param_t *curr_hook = get_current_branch_hook(param);
@@ -180,6 +191,10 @@ build_tlv_buffer(char **tokens,
                 else if(curr_hook != libcli_get_config_hook())
                     enable_or_disable = OPERATIONAL;
 
+                /*Add command code here*/
+                memset(command_code_tlv.value, 0, LEAF_VALUE_HOLDER_SIZE);
+                sprintf(command_code_tlv.value, "%d", param->CMDCODE);
+                collect_tlv(tlv_buff, &command_code_tlv);   
                 INVOKE_APPLICATION_CALLBACK_HANDLER(param, tlv_buff, enable_or_disable);
             }
             break;
@@ -277,6 +292,12 @@ command_parser(void){
 
     printf("run - \'show help\' cmd to learn more");
     place_console(1);
+    memset(&command_code_tlv, 0, sizeof(tlv_struct_t));
+
+    command_code_tlv.leaf_type = INT;
+    strncpy(command_code_tlv.leaf_id, "CMDCODE", LEAF_ID_SIZE);
+    command_code_tlv.leaf_id[LEAF_ID_SIZE -1] = '\0';
+    
     while(1){
 
         if((fgets((char *)cons_input_buffer, sizeof(cons_input_buffer)-1, stdin) == NULL)){
