@@ -65,13 +65,6 @@ config_router_name_handler(param_t *param, ser_buff_t *tlv_buf, op_mode enable_o
 
 
 int
-show_cmd_tree(param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_disable){
-        
-    dump_cmd_tree();
-    return 0;
-}
-
-int
 user_vlan_validation_callback(char *vlan_id){
 
     int vlan_no = atoi(vlan_id);
@@ -106,10 +99,6 @@ main(int argc, char **argv){
     init_param(&ipv6, CMD, "ipv6", 0, 0, INVALID, 0, "Internet Protocol(IPV6)");
     libcli_register_param(show, &ipv6);
 
-    static param_t debug_show;
-    init_param(&debug_show, CMD, "show", 0, 0, INVALID, 0, "debug show commands");
-    libcli_register_param(debug, &debug_show);
-     
     static param_t config_router;
     init_param(&config_router, CMD, "router", 0, 0, INVALID, 0, "Configuration Router");
     libcli_register_param(config, &config_router);
@@ -126,10 +115,6 @@ main(int argc, char **argv){
     static param_t igmp_config;
     init_param(&igmp_config, CMD, "configuration", show_ip_igmp_groups_handler, 0, INVALID, 0, "IGMP Protocol Configuration");
     libcli_register_param(&igmp, &igmp_config);
-
-    static param_t debug_show_cmdtree;
-    init_param(&debug_show_cmdtree, CMD, "cmdtree", show_cmd_tree, 0, INVALID, 0, "Display command tree");
-    libcli_register_param(&debug_show, &debug_show_cmdtree);
 
     /*Level 3*/
     static param_t config_router_name_name;

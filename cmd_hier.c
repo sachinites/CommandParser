@@ -218,6 +218,17 @@ init_libcli(){
     init_param(&debug, CMD, "debug", 0, 0, INVALID, 0, "debug cmds");
     libcli_register_param(&root, &debug);
 
+    /*debug show cmdtree*/
+
+    static param_t debug_show;
+    init_param(&debug_show, CMD, "show", 0, 0, INVALID, 0, "debug show commands");
+    libcli_register_param(&debug, &debug_show);
+
+    static param_t debug_show_cmdtree;
+    init_param(&debug_show_cmdtree, CMD, "cmdtree", show_cmd_tree, 0, INVALID, 0, "Display command tree");
+    libcli_register_param(&debug_show, &debug_show_cmdtree);
+    set_param_cmd_code(&debug_show_cmdtree, DEBUG_SHOW_CMDTREE);
+
     /*configure hook*/
     init_param(&config, CMD, "config", config_mode_enter_handler, 0, INVALID, 0, "config cmds");
     libcli_register_param(&root, &config);

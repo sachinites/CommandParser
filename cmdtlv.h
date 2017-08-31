@@ -24,6 +24,7 @@
 #include "serialize.h"
 #include <stdio.h>
 #include "cmd_hier.h"
+#include <stdlib.h>
 
 #pragma pack (push,1)
 typedef struct tlv_struct{

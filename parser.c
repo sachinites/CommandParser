@@ -81,11 +81,6 @@ find_matching_param(param_t **options, const char *cmd_name){
     return NULL;
 }
 
-/*-----------------------------------------------------------------------------
- *  Return 0 on Success, -1 on failure
- *  if Success, param is the pointer to the leaf of the cmd tree
- *  if Failure, param is the pointer to the mismatch patch of the cmd tree
- *-----------------------------------------------------------------------------*/
 
 static tlv_struct_t tlv;
 
@@ -248,11 +243,6 @@ parse_input_cmd(char *input, unsigned int len){
                 if(IS_CURRENT_MODE_CONFIG()){
                     assert(0); /*Impossible case*/
                 }
-
-                /*mode_enter_callback() fn will take care of below operations*/
-                //reset_serialize_buffer(tlv_buff);
-                //build_cmd_tree_leaves_data(tlv_buff, &root, new_cursor_state);
-                //mark_checkpoint_serialize_buffer(tlv_buff);
             }
             else{
                 /*User is in the config mode only */

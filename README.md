@@ -6,7 +6,7 @@ This Project gives developer Linux like command like interface to interact with 
 
 See The testapp.c to learn the usage of the library.
 #include libcli.h and cmdtlv.h in your application to use the library.
-Compile your application by linking it with licli.a library using -lcli. See Makefile for help.
+Compile your application by linking it with libcli.a library using -lcli. See Makefile for help.
 
 Steps :
 
