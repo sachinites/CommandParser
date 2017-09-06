@@ -86,13 +86,13 @@ static tlv_struct_t tlv;
 
 static CMD_PARSE_STATUS
 build_tlv_buffer(char **tokens, 
-                 size_t token_cnt, 
-                 op_mode enable_or_disable){ 
+                 size_t token_cnt){ 
 
     int i = 0; 
     param_t *parent = NULL;
     param_t *param = get_cmd_tree_cursor();
     CMD_PARSE_STATUS status = COMPLETE;
+    op_mode enable_or_disable = MODE_UNKNOWN; 
 
 
     memset(&tlv, 0, sizeof(tlv_struct_t));
@@ -231,7 +231,7 @@ parse_input_cmd(char *input, unsigned int len){
 
             /*There is a cross branch junp from config to Operational branch, hence reset the buffer*/
             reset_serialize_buffer(tlv_buff);
-            status = build_tlv_buffer(&tokens[1], token_cnt-1, OPERATIONAL);
+            status = build_tlv_buffer(&tokens[1], token_cnt-1);
 
             /*It might be possible that user may have switched the branch from within config branch*/
             new_cursor_state = get_cmd_tree_cursor();
@@ -266,7 +266,7 @@ parse_input_cmd(char *input, unsigned int len){
         clear_screen_handler(0, 0, MODE_UNKNOWN);
 
     else 
-        status = build_tlv_buffer(tokens, token_cnt, MODE_UNKNOWN); 
+        status = build_tlv_buffer(tokens, token_cnt); 
 
     re_init_tokens(MAX_CMD_TREE_DEPTH);
 
