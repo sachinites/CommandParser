@@ -98,9 +98,14 @@ char** str_split2(char* _a_str, const char a_delim, size_t *token_cnt){
         if(token){
             strncpy(tokens[i], token, strlen(token));
             i++;
+            if(i == MAX_CMD_TREE_DEPTH + 1){
+                printf("Warning : Max token limit (= %d) support exceeded\n", MAX_CMD_TREE_DEPTH);
+                re_init_tokens(MAX_CMD_TREE_DEPTH);
+                *token_cnt = 0;
+                return &tokens[0];
+            }
         }
     } 
-
     *token_cnt = i;
     return &tokens[0];
 }

@@ -216,7 +216,7 @@ parse_input_cmd(char *input, unsigned int len){
     CMD_PARSE_STATUS status = COMPLETE;
 
     tokens = str_split2(input, ' ', &token_cnt);
-    if(!tokens)
+    if(!token_cnt)
         return;
 
     if(token_cnt > 1 && 
