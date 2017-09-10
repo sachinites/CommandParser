@@ -123,6 +123,16 @@ parse_input_cmd(char *input, unsigned int len);
 extern void
 place_console(char new_line);
 
+void
+libcli_register_display_callback(param_t *param, 
+                                display_possible_values_callback disp_callback){
+
+    if(IS_PARAM_NO_CMD(param))
+        assert(0);
+    param->disp_callback = disp_callback;
+}
+
+
 char*
 get_str_leaf_type(leaf_type_t leaf_type){
 
@@ -336,6 +346,7 @@ init_param(param_t *param,                               /* pointer to static pa
     param->callback = callback;
     strncpy(GET_PARAM_HELP_STRING(param), help, MIN(PARAM_HELP_STRING_SIZE, strlen(help)));
     GET_PARAM_HELP_STRING(param)[PARAM_HELP_STRING_SIZE -1] = '\0';
+    param->disp_callback = NULL;
 
     for(; i < MAX_OPTION_SIZE; i++){
         param->options[i] = NULL;

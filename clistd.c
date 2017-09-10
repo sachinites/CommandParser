@@ -158,6 +158,13 @@ display_sub_options_callback(param_t *param, ser_buff_t *b, op_mode enable_or_di
         }
         break;
     }
+
+    /*Means param is a leaf*/
+    if(param->disp_callback){
+        printf(ANSI_COLOR_YELLOW "possible values :\n");
+        param->disp_callback(param, b);
+        printf(ANSI_COLOR_RESET);
+    }
     return 0;
 }
 /* show history calback*/

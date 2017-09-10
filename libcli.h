@@ -61,6 +61,10 @@ init_param(param_t *param,
 void 
 libcli_register_param(param_t *parent, param_t *child);
 
+void
+libcli_register_display_callback(param_t *param,
+                                 display_possible_values_callback disp_callback);
+
 /*After this call, libcli_register_param MUST not be invoked on param*/
 void
 support_cmd_negation(param_t *param);

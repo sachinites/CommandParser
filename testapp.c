@@ -26,7 +26,15 @@
 #define MTRACE_SOURCE_GROUP         4
 
 
+static void
+list_vlans(param_t *param, ser_buff_t *tlv_buf){
 
+    unsigned int i = 1;
+    for(; i <= 10; i++){
+
+        printf("%d\n", i);
+    }
+}
 
 int
 show_ip_igmp_groups_handler(param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_disable){
@@ -129,6 +137,7 @@ main(int argc, char **argv){
     static param_t show_ip_igmp_groups_vlan;
     init_param(&show_ip_igmp_groups_vlan, CMD, "vlan", 0, 0, INVALID, 0, "vlan");
     libcli_register_param(&show_ip_igmp_groups, &show_ip_igmp_groups_vlan);
+    libcli_register_display_callback(&show_ip_igmp_groups_vlan, list_vlans);
 
     static param_t show_ip_igmp_groups_vlan_vlan;
     init_param(&show_ip_igmp_groups_vlan_vlan, LEAF, 0, show_ip_igmp_groups_handler, user_vlan_validation_callback,
