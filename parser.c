@@ -163,7 +163,7 @@ build_tlv_buffer(char **tokens,
             printf(ANSI_COLOR_GREEN "Parse Success.\n" ANSI_COLOR_RESET);
 
             if(param == libcli_get_suboptions_param())
-                display_sub_options_callback(parent, 0, MODE_UNKNOWN);
+                display_sub_options_callback(parent, tlv_buff, MODE_UNKNOWN);
 
             else if(param == libcli_get_mode_param()){
                 
