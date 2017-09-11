@@ -139,6 +139,7 @@ mode_enter_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
 display_sub_options_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
     
     int i = 0;
+    tlv_struct_t dummy;
 
     if(IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(param))
         printf("<Enter>\n");
@@ -161,6 +162,10 @@ display_sub_options_callback(param_t *param, ser_buff_t *b, op_mode enable_or_di
 
     /*Means param is a leaf*/
     if(param->disp_callback){
+
+        /*Add a dummy TLV to compensate for the cmd code TLV*/
+        memset(&dummy, 0, sizeof(tlv_struct_t));
+        collect_tlv(b, &dummy);
         printf(ANSI_COLOR_YELLOW "possible values :\n");
         param->disp_callback(param, b);
         printf(ANSI_COLOR_RESET);
