@@ -31,11 +31,13 @@
 #define DEFAULT_DEVICE_NAME     "root@juniper"
 #define MODE_CHARACTER          "/"
 #define SUBOPTIONS_CHARACTER    "?"
+#define CMD_EXPANSION_CHARACTER "."
 #define MAX_OPTION_SIZE         16
 
 #define MODE_PARAM_INDEX        0
 #define SUBOPTIONS_INDEX        1
-#define CHILDREN_START_INDEX    2
+#define CMD_EXPANSION_INDEX     2
+#define CHILDREN_START_INDEX    3
 #define CHILDREN_END_INDEX      (MAX_OPTION_SIZE -1)
 
 #define NEGATE_CHARACTER        "no"

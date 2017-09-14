@@ -176,6 +176,9 @@ build_tlv_buffer(char **tokens,
                 mode_enter_callback(parent, tlv_buff, enable_or_disable);
             }
 
+            else if(param == libcli_get_cmd_expansion_param())
+                display_cmd_expansion_callback(parent, tlv_buff, MODE_UNKNOWN);
+
             else{
                 param_t *curr_hook = get_current_branch_hook(param);
 

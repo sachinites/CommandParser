@@ -124,6 +124,9 @@ libcli_get_mode_param();
 param_t *
 libcli_get_suboptions_param();
 
+param_t *
+libcli_get_cmd_expansion_param();
+
 static inline int
 is_cmd_string_match(param_t *param, const char *str){
     return (strncmp(param->cmd_type.cmd->cmd_name, 

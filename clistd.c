@@ -31,6 +31,35 @@ parse_input_cmd(char *input, unsigned int len);
 extern char *
 get_last_command();
 
+static void
+dump_all_commands(param_t *root, unsigned int index){
+
+        if(!root)
+            return;
+
+        if(IS_PARAM_NO_CMD(root))
+            return;
+
+        if(IS_PARAM_CMD(root)){
+            untokenize(index);
+            tokenize(GET_CMD_NAME(root), strlen(GET_CMD_NAME(root)), index);
+        }
+        else if(IS_PARAM_LEAF(root)){
+            untokenize(index);
+            tokenize(GET_LEAF_ID(root), strlen(GET_LEAF_ID(root)), index);
+        }
+
+        unsigned int i = CHILDREN_START_INDEX;
+
+        for( ; i <= CHILDREN_END_INDEX; i++)
+            dump_all_commands(root->options[i], index+1);
+        
+        if(IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(root)){
+            print_tokens(index + 1);
+            printf("\n");
+        }
+}
+
 /*Default validation handlers for Data types*/
 
 int
@@ -172,6 +201,19 @@ display_sub_options_callback(param_t *param, ser_buff_t *b, op_mode enable_or_di
     }
     return 0;
 }
+
+
+ int
+display_cmd_expansion_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
+
+    re_init_tokens(MAX_CMD_TREE_DEPTH);
+    unsigned int index = 0;
+
+    dump_all_commands(param, index);
+    return 0;
+}   
+
+
 /* show history calback*/
 
 ser_buff_t *file_read_buffer = NULL;
@@ -270,34 +312,6 @@ show_help_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
     return 0;
 }
 
-static void
-dump_all_commands(param_t *root, unsigned int index){
-
-        if(!root)
-            return;
-
-        if(IS_PARAM_NO_CMD(root))
-            return;
-
-        if(IS_PARAM_CMD(root)){
-            untokenize(index);
-            tokenize(GET_CMD_NAME(root), strlen(GET_CMD_NAME(root)), index);
-        }
-        else if(IS_PARAM_LEAF(root)){
-            untokenize(index);
-            tokenize(GET_LEAF_ID(root), strlen(GET_LEAF_ID(root)), index);
-        }
-
-        unsigned int i = CHILDREN_START_INDEX;
-
-        for( ; i <= CHILDREN_END_INDEX; i++)
-            dump_all_commands(root->options[i], index+1);
-        
-        if(IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(root)){
-            print_tokens(index + 1);
-            printf("\n");
-        }
-}
 
 int
 show_resgistered_cmd_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){

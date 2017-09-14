@@ -43,6 +43,7 @@ static param_t clear;
 
 static param_t mode_param;
 static param_t suboptions_param;
+static param_t cmd_expansion_param;
 
 param_t *
 libcli_get_mode_param(){
@@ -53,6 +54,11 @@ libcli_get_mode_param(){
 param_t *
 libcli_get_suboptions_param(){
     return &suboptions_param;
+}
+
+param_t *
+libcli_get_cmd_expansion_param(){
+    return &cmd_expansion_param;
 }
 
 /* Function to be used to get access to above hooks*/
@@ -191,7 +197,8 @@ init_libcli(){
      
     /*Initialise Capablities Params*/
     init_param(&mode_param, CMD, MODE_CHARACTER, mode_enter_callback , 0, INVALID, 0, "ENTER MODE");
-    init_param(&suboptions_param, CMD, SUBOPTIONS_CHARACTER, display_sub_options_callback, 0, INVALID, 0, "Sub-Options"); 
+    init_param(&suboptions_param, CMD, SUBOPTIONS_CHARACTER, display_sub_options_callback, 0, INVALID, 0, "Sub-Options");
+    init_param(&cmd_expansion_param, CMD, CMD_EXPANSION_CHARACTER, display_cmd_expansion_callback, 0, INVALID, 0, "All possible Command expansions"); 
 
     /*Registering Zero level default command hooks*/
     /*Show hook*/
@@ -437,6 +444,9 @@ libcli_register_param(param_t *parent, param_t *child){
     if(!IS_PARAM_SUBOPTIONS_ENABLE(parent)){
         parent->options[SUBOPTIONS_INDEX] = libcli_get_suboptions_param();
     }
+
+    if(parent->options[CMD_EXPANSION_INDEX] == NULL)
+        parent->options[CMD_EXPANSION_INDEX] = libcli_get_cmd_expansion_param();
 
     for(i = CHILDREN_START_INDEX; i <= CHILDREN_END_INDEX; i++){
         if(parent->options[i])
