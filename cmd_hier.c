@@ -267,6 +267,7 @@ init_libcli(){
     init_param(&do_hook, CMD, "DO_HOOK", 0, 0, INVALID, 0, "operational commands shortcut");
     do_hook.options[MODE_PARAM_INDEX] = libcli_get_suboptions_param(); // A hack, just fill it 
     do_hook.options[SUBOPTIONS_INDEX] = libcli_get_suboptions_param();
+    do_hook.options[CMD_EXPANSION_INDEX] = libcli_get_cmd_expansion_param();
     do_hook.options[CHILDREN_START_INDEX] = &show;
     do_hook.options[CHILDREN_START_INDEX+1] = &debug;
     do_hook.options[CHILDREN_START_INDEX+2] = &clear; 
