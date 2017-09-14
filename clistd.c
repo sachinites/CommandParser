@@ -296,10 +296,11 @@ show_help_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
 
     printf("Welcome to Help Wizard\n");
     printf("========================\n");
-    printf("1. Use %s Character after the command to enter command mode\n", MODE_CHARACTER);
-    printf("2. Use %s Character after the command to see possible follow up suboptions\n", SUBOPTIONS_CHARACTER);
+    printf("1. Use '%s' Character after the command to enter command mode\n", MODE_CHARACTER);
+    printf("2. Use '%s' Character after the command to see possible follow up suboptions\n", SUBOPTIONS_CHARACTER);
     printf("3. Use 'do' from within the config branch to directly trigger operational commands\n");
-    printf("4. Built-in commands:\n");
+    printf("4. Use '%s' Character after the command to see possible complete command completions\n", CMD_EXPANSION_CHARACTER);
+    printf("5. Built-in commands:\n");
     printf("    a. cls - clear screen\n");
     printf("    b. end - jump to top of cmd tree\n");
     printf("    c. exit - jump one level up of command tree\n");
