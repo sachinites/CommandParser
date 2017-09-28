@@ -267,11 +267,11 @@ init_libcli(){
     init_param(&do_hook, CMD, "DO_HOOK", 0, 0, INVALID, 0, "operational commands shortcut");
     do_hook.options[MODE_PARAM_INDEX] = libcli_get_suboptions_param(); // A hack, just fill it 
     do_hook.options[SUBOPTIONS_INDEX] = libcli_get_suboptions_param();
-    do_hook.options[CMD_EXPANSION_INDEX] = libcli_get_cmd_expansion_param();
+    do_hook.options[CMD_EXPANSION_INDEX] = libcli_get_cmd_expansion_param(); 
     do_hook.options[CHILDREN_START_INDEX] = &show;
     do_hook.options[CHILDREN_START_INDEX+1] = &debug;
     do_hook.options[CHILDREN_START_INDEX+2] = &clear; 
-
+    
     /*configure repeat*/
     static param_t repeat;
     init_param(&repeat, CMD, "repeat", repeat_last_command, 0, INVALID, 0, "repeat");
@@ -394,7 +394,8 @@ support_cmd_negation(param_t *param){
 
     no_param->options[MODE_PARAM_INDEX] = libcli_get_suboptions_param();//libcli_get_mode_param();
     no_param->options[SUBOPTIONS_INDEX] = libcli_get_suboptions_param();
-    
+    no_param->options[CMD_EXPANSION_INDEX] = libcli_get_cmd_expansion_param();
+     
     for(i = CHILDREN_START_INDEX; i <= CHILDREN_END_INDEX; i++){
         if(param->options[i]){
             no_param->options[i] = param->options[i];
