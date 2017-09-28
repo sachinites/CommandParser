@@ -24,6 +24,7 @@
 #include <stdio.h>
 
 static char a_str[CONS_INPUT_BUFFER_SIZE];
+char temp[ LEAF_ID_SIZE + 2];
 
 static char * tokens[MAX_CMD_TREE_DEPTH];
 

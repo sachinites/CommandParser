@@ -31,6 +31,8 @@ parse_input_cmd(char *input, unsigned int len);
 extern char *
 get_last_command();
 
+extern char temp[ LEAF_ID_SIZE + 2];
+
 static void
 dump_all_commands(param_t *root, unsigned int index){
 
@@ -46,7 +48,9 @@ dump_all_commands(param_t *root, unsigned int index){
         }
         else if(IS_PARAM_LEAF(root)){
             untokenize(index);
-            tokenize(GET_LEAF_ID(root), strlen(GET_LEAF_ID(root)), index);
+            memset(temp, 0, LEAF_VALUE_HOLDER_SIZE + 2);
+            sprintf(temp, "<%s>", GET_LEAF_ID(root));
+            tokenize(temp, strlen(GET_LEAF_ID(root)) + 2, index);
         }
 
         unsigned int i = CHILDREN_START_INDEX;
