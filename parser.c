@@ -198,7 +198,8 @@ build_tlv_buffer(char **tokens,
             break;
 
         case USER_INVALID_LEAF:
-            printf(ANSI_COLOR_YELLOW "Error : User validation has failed\n" ANSI_COLOR_RESET);
+            printf(ANSI_COLOR_YELLOW "Error : User validation has failed : Invalid value for Leaf : %s\n", GET_LEAF_ID(param));
+            printf(ANSI_COLOR_RESET);
             break;
 
         case INCOMPLETE_COMMAND:
