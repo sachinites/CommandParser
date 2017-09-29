@@ -38,6 +38,7 @@ static param_t show;
 static param_t debug;
 static param_t config;
 static param_t clear;
+static param_t repeat;
 
 /* Default param Capabilities*/
 
@@ -93,12 +94,17 @@ libcli_get_clear_hook(void){
     return &clear;
 }
 
+param_t *
+libcli_get_repeat_hook(void){
+    return &repeat;
+}
 /* Cursor functions*/
 void
 reset_cmd_tree_cursor(){
     cmd_tree_cursor = &root;
     reset_serialize_buffer(tlv_buff);
 }
+
 
 void
 set_cmd_tree_cursor(param_t *param){
@@ -273,7 +279,6 @@ init_libcli(){
     do_hook.options[CHILDREN_START_INDEX+2] = &clear; 
     
     /*configure repeat*/
-    static param_t repeat;
     init_param(&repeat, CMD, "repeat", repeat_last_command, 0, INVALID, 0, "repeat");
     libcli_register_param(&root, &repeat);
     

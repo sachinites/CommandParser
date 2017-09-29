@@ -189,10 +189,12 @@ build_tlv_buffer(char **tokens,
                 else if(curr_hook != libcli_get_config_hook())
                     enable_or_disable = OPERATIONAL;
 
-                /*Add command code here*/
-                memset(command_code_tlv.value, 0, LEAF_VALUE_HOLDER_SIZE);
-                sprintf(command_code_tlv.value, "%d", param->CMDCODE);
-                collect_tlv(tlv_buff, &command_code_tlv);   
+                if(curr_hook != libcli_get_repeat_hook()){
+                    /*Add command code here*/
+                    memset(command_code_tlv.value, 0, LEAF_VALUE_HOLDER_SIZE);
+                    sprintf(command_code_tlv.value, "%d", param->CMDCODE);
+                    collect_tlv(tlv_buff, &command_code_tlv); 
+                }
                 INVOKE_APPLICATION_CALLBACK_HANDLER(param, tlv_buff, enable_or_disable);
             }
             break;
