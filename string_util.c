@@ -67,7 +67,7 @@ get_token(unsigned int index){
     return tokens[index];
 }
 
-char** str_split2(char* _a_str, const char a_delim, size_t *token_cnt){
+char** tokenizer(char* _a_str, const char a_delim, size_t *token_cnt){
    
     char *token = NULL;
     int i = 0;

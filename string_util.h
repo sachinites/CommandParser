@@ -21,7 +21,7 @@
 #include <string.h>
 
 
-char** str_split2(char* a_str, 
+char** tokenizer(char* a_str, 
                  const char a_delim, 
                  size_t *token_cnt);
 

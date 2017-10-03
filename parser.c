@@ -221,7 +221,7 @@ parse_input_cmd(char *input, unsigned int len){
     size_t token_cnt = 0;
     CMD_PARSE_STATUS status = COMPLETE;
 
-    tokens = str_split2(input, ' ', &token_cnt);
+    tokens = tokenizer(input, ' ', &token_cnt);
     if(!token_cnt)
         return;
 

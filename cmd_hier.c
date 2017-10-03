@@ -425,7 +425,7 @@ set_device_name(const char *cons_name){
     assert(cons_name);
 
     if(strlen(console_name))
-        tokens = str_split2(console_name, '>', &token_cnt);
+        tokens = tokenizer(console_name, '>', &token_cnt);
     
     sprintf(console_name, "%s>", cons_name);
     
@@ -547,7 +547,7 @@ goto_top_of_cmd_tree(param_t *curr_cmd_tree_cursor){
     } while(curr_cmd_tree_cursor != &root);
     
     reset_cmd_tree_cursor();
-    tokens = str_split2(console_name, '>', &token_cnt);
+    tokens = tokenizer(console_name, '>', &token_cnt);
     sprintf(console_name, "%s>", tokens[0]);
 }
 
@@ -573,7 +573,7 @@ go_one_level_up_cmd_tree(param_t *curr_cmd_tree_cursor){
      set_cmd_tree_cursor(curr_cmd_tree_cursor->parent);
 
      if(get_cmd_tree_cursor() == &root){
-        tokens = str_split2(console_name, '>', &token_cnt);
+        tokens = tokenizer(console_name, '>', &token_cnt);
         sprintf(console_name, "%s>", tokens[0]);
         reset_serialize_buffer(tlv_buff);
         return;
@@ -601,7 +601,7 @@ build_mode_console_name(param_t *dst_param){
     static char cmd_names[MAX_CMD_TREE_DEPTH][LEAF_VALUE_HOLDER_SIZE];
     char *admin_set_console_name = NULL;
 
-    tokens = str_split2(console_name, '>', &token_cnt);
+    tokens = tokenizer(console_name, '>', &token_cnt);
     admin_set_console_name = tokens[0];
     sprintf(console_name, "%s> ", admin_set_console_name);
     
