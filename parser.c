@@ -30,6 +30,9 @@ extern leaf_type_handler leaf_handler_array[LEAF_MAX];
 extern ser_buff_t *tlv_buff;
 char console_name[TERMINAL_NAME_SIZE];
 
+static param_t*
+array_of_possibilities[POSSIBILITY_ARRAY_SIZE];
+
 void
 place_console(char new_line){
     if(new_line)
@@ -58,12 +61,14 @@ get_last_command(){
     return last_command_input_buffer;
 }
 
-
-
 param_t*
 find_matching_param(param_t **options, const char *cmd_name){
     
-    int i = 0, leaf_index = -1;
+    int i = 0, leaf_index = -1,
+        j = 0,
+        choice = -1;
+    
+    memset(array_of_possibilities, 0, POSSIBILITY_ARRAY_SIZE * sizeof(param_t *));
 
     for(; options[i] && i <= CHILDREN_END_INDEX; i++){
         if(IS_PARAM_LEAF(options[i])){
@@ -71,14 +76,36 @@ find_matching_param(param_t **options, const char *cmd_name){
             continue;
         }
 
-        if(is_cmd_string_match(options[i], cmd_name) == 0)
-            return options[i];
+        if(is_cmd_string_match(options[i], cmd_name) == 0){
+            array_of_possibilities[j++] = options[i];
+            assert(j < POSSIBILITY_ARRAY_SIZE);
+            continue;
+        }
     }
 
-    if(leaf_index >= 0)
+    if(leaf_index >= 0 && j == 0)
         return options[leaf_index];
 
-    return NULL;
+    if( j == 0)
+        return NULL;
+
+    if(j == 1)
+        return array_of_possibilities[0];
+
+    /* More than one param matched*/
+    printf("%d possibilities :\n", j);
+    for(i = 0; i < j; i++)
+        printf("%-2d. %s\n", i, GET_CMD_NAME(array_of_possibilities[i]));
+
+    printf("Choice [0-%d] : ? ", j-1);
+    scanf("%d", &choice);
+
+    if(choice < 0 || choice > (j-1)){
+        printf("\nInvalid Choice");
+        return NULL;
+    }
+
+    return array_of_possibilities[choice];   
 }
 
 
@@ -221,7 +248,7 @@ parse_input_cmd(char *input, unsigned int len){
     size_t token_cnt = 0;
     CMD_PARSE_STATUS status = COMPLETE;
 
-    tokens = tokenizer(input, ' ', &token_cnt);
+    tokens = str_split2(input, ' ', &token_cnt);
     if(!token_cnt)
         return;
 
