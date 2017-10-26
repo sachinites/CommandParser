@@ -248,7 +248,7 @@ parse_input_cmd(char *input, unsigned int len){
     size_t token_cnt = 0;
     CMD_PARSE_STATUS status = COMPLETE;
 
-    tokens = str_split2(input, ' ', &token_cnt);
+    tokens = tokenizer(input, ' ', &token_cnt);
     if(!token_cnt)
         return;
 
@@ -289,13 +289,14 @@ parse_input_cmd(char *input, unsigned int len){
             printf("Info : do is supported from within config mode only\n");
     }
 
-    else if((strncmp(tokens[0], "end", strlen("end")) == 0) && (token_cnt == 1))
-        goto_top_of_cmd_tree(get_cmd_tree_cursor());
-
-    else if((strncmp(tokens[0], "exit", strlen("exit")) == 0) && (token_cnt == 1))
+    else if((strncmp(tokens[0], GOTO_ONE_LVL_UP_STRING, strlen(GOTO_ONE_LVL_UP_STRING)) == 0) && (token_cnt == 1))
         go_one_level_up_cmd_tree(get_cmd_tree_cursor());
     
-    else if((strncmp(tokens[0], "cls", strlen("cls")) == 0) && (token_cnt == 1))
+    else if((strncmp(tokens[0], GOTO_TOP_STRING, strlen(GOTO_TOP_STRING)) == 0) && (token_cnt == 1))
+        goto_top_of_cmd_tree(get_cmd_tree_cursor());
+
+    
+    else if((strncmp(tokens[0], CLEAR_SCR_STRING, strlen(CLEAR_SCR_STRING)) == 0) && (token_cnt == 1))
         clear_screen_handler(0, 0, MODE_UNKNOWN);
 
     else 

@@ -27,7 +27,7 @@
 #define CONS_INPUT_BUFFER_SIZE  2048
 #define TERMINAL_NAME_SIZE      CONS_INPUT_BUFFER_SIZE
 #define TLV_MAX_BUFFER_SIZE     1024
-
+#define POSSIBILITY_ARRAY_SIZE  6 
 #define DEFAULT_DEVICE_NAME     "root@juniper"
 #define MODE_CHARACTER          "/"
 #define SUBOPTIONS_CHARACTER    "?"
@@ -41,7 +41,9 @@
 #define CHILDREN_END_INDEX      (MAX_OPTION_SIZE -1)
 
 #define NEGATE_CHARACTER        "no"
-
+#define GOTO_TOP_STRING         "cd"
+#define GOTO_ONE_LVL_UP_STRING  "cd.."
+#define CLEAR_SCR_STRING        "cls"
 
 
 /* Default Command Codes*/
