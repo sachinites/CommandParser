@@ -299,17 +299,17 @@ init_libcli(){
 
     /* Install clear command "cls"*/
     static param_t cls;
-    init_param(&cls, CMD, "cls", clear_screen_handler, 0, INVALID, 0, "clear screen");
+    init_param(&cls, CMD, CLEAR_SCR_STRING, clear_screen_handler, 0, INVALID, 0, "clear screen");
     HIDE_PARAM(&cls);
     libcli_register_param(0, &cls);
 
     static param_t exit_cmd;
-    init_param(&exit_cmd, CMD, "exit", exit_cmd_handler, 0, INVALID, 0, "Move One Level Up");
+    init_param(&exit_cmd, CMD, GOTO_ONE_LVL_UP_STRING, exit_cmd_handler, 0, INVALID, 0, "Move One Level Up");
     HIDE_PARAM(&exit_cmd);
     libcli_register_param(0, &exit_cmd);
 
     static param_t end_cmd;
-    init_param(&end_cmd, CMD, "end", end_cmd_handler, 0, INVALID, 0, "Goto Top level");
+    init_param(&end_cmd, CMD, GOTO_TOP_STRING, end_cmd_handler, 0, INVALID, 0, "Goto Top level");
     HIDE_PARAM(&end_cmd);
     libcli_register_param(0, &end_cmd);
 
