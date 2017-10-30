@@ -45,7 +45,7 @@ show_ip_igmp_groups_handler(param_t *param, ser_buff_t *tlv_buf, op_mode enable_
     dump_tlv_serialized_buffer(tlv_buf);
     
 #if 0
-    TLV_LOOP(tlv_buf, tlv, i){
+    TLV_LOOP_BEGIN(tlv_buf, tlv, i){
         if(strncmp(tlv->leaf_id, "group-ip", strlen("group-ip")) == 0){
             printf("Group Ip Recvd in application = %s\n", tlv->value);   
         }

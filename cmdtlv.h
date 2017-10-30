@@ -37,11 +37,14 @@ typedef struct tlv_struct{
 #define EXTRACT_CMD_CODE(ser_buff_ptr)  \
     atoi(((tlv_struct_t *)(ser_buff_ptr->b) + (get_serialize_buffer_size(ser_buff_ptr)/sizeof(tlv_struct_t) -1))->value)
 
-#define TLV_LOOP(ser_buff, tlvptr, i)                                                   \
+#define TLV_LOOP_BEGIN(ser_buff, tlvptr)                                                \
+{                                                                                       \
     assert(ser_buff);                                                                   \
     tlvptr = (tlv_struct_t *)(ser_buff->b);                                             \
-    i = 0;                                                                              \
-    for(; i < (get_serialize_buffer_size(ser_buff)/sizeof(tlv_struct_t) -1); i++, tlvptr++)
+    unsigned int i = 0, k = get_serialize_buffer_size(ser_buff)/sizeof(tlv_struct_t);   \
+    for(; i < k-1; i++, tlvptr++)
+
+#define TLV_LOOP_END    }
 
 #define tlv_copy_leaf_id(tlvptr, dst)                          \
     strncpy(dst, tlvptr->leaf_id, strlen(tlvptr->leaf_id));    \
@@ -76,14 +79,13 @@ print_tlv_content(tlv_struct_t *tlv){
 static inline void
 dump_tlv_serialized_buffer(ser_buff_t *tlv_ser_buff){
 
-    int i = 0;
     tlv_struct_t *tlv = NULL;
 
     printf("cmd code = %d\n", EXTRACT_CMD_CODE(tlv_ser_buff));
-    TLV_LOOP(tlv_ser_buff, tlv, i){
+    TLV_LOOP_BEGIN(tlv_ser_buff, tlv){
         print_tlv_content(tlv);
         printf("\n");
-    }
+    } TLV_LOOP_END;
 }
 
 static inline void

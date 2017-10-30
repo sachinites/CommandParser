@@ -124,9 +124,8 @@ extern char console_name[TERMINAL_NAME_SIZE];
 config_console_name_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
 
     tlv_struct_t *tlv = NULL;
-    int i = 0;
 
-    TLV_LOOP(b, tlv, i){
+    TLV_LOOP_BEGIN(b, tlv){
         if(enable_or_disable == CONFIG_ENABLE)
             set_device_name(tlv->value);
         else{
@@ -135,7 +134,7 @@ config_console_name_handler(param_t *param, ser_buff_t *b, op_mode enable_or_dis
             else
                 printf("Error : Incorrect device name\n");
         }
-    }
+    }TLV_LOOP_END;
     return 0;
 }
 
