@@ -27,24 +27,27 @@
 #define CONS_INPUT_BUFFER_SIZE  2048
 #define TERMINAL_NAME_SIZE      CONS_INPUT_BUFFER_SIZE
 #define TLV_MAX_BUFFER_SIZE     1024
-#define POSSIBILITY_ARRAY_SIZE  6 
+#define POSSIBILITY_ARRAY_SIZE  10 
 #define DEFAULT_DEVICE_NAME     "root@juniper"
 #define MODE_CHARACTER          "/"
 #define SUBOPTIONS_CHARACTER    "?"
 #define CMD_EXPANSION_CHARACTER "."
 #define MAX_OPTION_SIZE         16
-
+#define CMD_HIST_RECORD_FILE    "CMD_HIST_RECORD_FILE.txt"
+#define FILE_CMD_SIZE_MAX       (LEAF_VALUE_HOLDER_SIZE * MAX_CMD_TREE_DEPTH)
 #define MODE_PARAM_INDEX        0
 #define SUBOPTIONS_INDEX        1
 #define CMD_EXPANSION_INDEX     2
 #define CHILDREN_START_INDEX    3
 #define CHILDREN_END_INDEX      (MAX_OPTION_SIZE -1)
+#define MAX_SAVED_CMDS          30
+
 
 #define NEGATE_CHARACTER        "no"
 #define GOTO_TOP_STRING         "cd"
 #define GOTO_ONE_LVL_UP_STRING  "cd.."
 #define CLEAR_SCR_STRING        "cls"
-
+#define DO                      "do"
 
 /* Default Command Codes*/
 /*CMD codes need not be unique, but should be unique with in same command sharing 
@@ -58,4 +61,17 @@
 #define CONFIG_SUPPORTSAVE_ENABLE   5
 #define CONFIG_CONSOLEN_NAME_NAME   6
 #define DEBUG_SHOW_CMDTREE          7
+
+
+typedef enum{
+    COMPLETE,
+    ERROR,
+    INVALID_LEAF,
+    USER_INVALID_LEAF,
+    CMD_NOT_FOUND,
+    INCOMPLETE_COMMAND,
+    MULTIPLE_MATCHING_COMMANDS,
+    UNKNOWN
+} CMD_PARSE_STATUS;
+
 #endif /* __LIBCLICONSTANTS__ */

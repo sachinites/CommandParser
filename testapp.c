@@ -102,11 +102,11 @@ main(int argc, char **argv){
     static param_t ip;
     init_param(&ip, CMD, "ip", 0, 0, INVALID, 0, "Internet Protocol(IP)");
     libcli_register_param(show, &ip);
-
+#if 0
     static param_t ipv6;
     init_param(&ipv6, CMD, "ipv6", 0, 0, INVALID, 0, "Internet Protocol(IPV6)");
     libcli_register_param(show, &ipv6);
-
+#endif
     static param_t config_router;
     init_param(&config_router, CMD, "router", 0, 0, INVALID, 0, "Configuration Router");
     libcli_register_param(config, &config_router);

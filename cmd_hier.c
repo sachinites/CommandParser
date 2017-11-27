@@ -38,6 +38,7 @@ static param_t show;
 static param_t debug;
 static param_t config;
 static param_t clear;
+static param_t run;
 static param_t repeat;
 
 /* Default param Capabilities*/
@@ -95,6 +96,11 @@ libcli_get_clear_hook(void){
 }
 
 param_t *
+libcli_get_run_hook(void){
+    return &run;
+}
+
+param_t *
 libcli_get_repeat_hook(void){
     return &repeat;
 }
@@ -127,9 +133,7 @@ get_last_command();
 
 extern char console_name[TERMINAL_NAME_SIZE];
 
-extern  ser_buff_t *file_read_buffer;
-
-extern void
+extern CMD_PARSE_STATUS
 parse_input_cmd(char *input, unsigned int len);
 
 extern void
@@ -184,7 +188,7 @@ init_libcli(){
     
     /*Intialised serialized buffer to collect leaf values in TLV format*/
     init_serialized_buffer_of_defined_size(&tlv_buff, TLV_MAX_BUFFER_SIZE);
-    init_serialized_buffer_of_defined_size(&file_read_buffer, TLV_MAX_BUFFER_SIZE);
+    //init_serialized_buffer_of_defined_size(&file_read_buffer, TLV_MAX_BUFFER_SIZE);
 
     reset_cmd_tree_cursor();
 
@@ -268,6 +272,10 @@ init_libcli(){
     /*clear hook*/
     init_param(&clear, CMD, "clear", 0, 0, INVALID, 0, "clear cmds");
     libcli_register_param(&root, &clear);
+
+    /*run hook*/
+    init_param(&run, CMD, "run", 0, 0, INVALID, 0, "run cmds");
+    libcli_register_param(&root, &run);
 
     /*Hook up the show/debug/clear operational command in Do Hook*/
     init_param(&do_hook, CMD, "DO_HOOK", 0, 0, INVALID, 0, "operational commands shortcut");

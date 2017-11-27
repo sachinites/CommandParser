@@ -97,4 +97,6 @@ show_resgistered_cmd_handler(param_t *param, ser_buff_t *b, op_mode enable_or_di
 int
 show_cmd_tree(param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_disable);
 
+void
+record_command(char *hist_file, char *cons_input_buffer, unsigned int cmd_len);
 #endif /* __CLISTD__ */

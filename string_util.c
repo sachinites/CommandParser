@@ -84,6 +84,7 @@ char** tokenizer(char* _a_str, const char a_delim, size_t *token_cnt){
 
     token = strtok(a_str, &a_delim);
     if(token){
+        untokenize(i);
         strncpy(tokens[i], token, strlen(token));
         i++;
     }
@@ -97,6 +98,7 @@ char** tokenizer(char* _a_str, const char a_delim, size_t *token_cnt){
     {
         token = strtok(NULL, &a_delim);
         if(token){
+            untokenize(i);
             strncpy(tokens[i], token, strlen(token));
             i++;
             if(i == MAX_CMD_TREE_DEPTH + 1){

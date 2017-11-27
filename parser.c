@@ -45,17 +45,6 @@ static char last_command_input_buffer[CONS_INPUT_BUFFER_SIZE];
 
 static tlv_struct_t command_code_tlv;
 
-typedef enum{
-    COMPLETE,
-    ERROR,
-    INVALID_LEAF,
-    USER_INVALID_LEAF,
-    CMD_NOT_FOUND,
-    INCOMPLETE_COMMAND,
-    MULTIPLE_MATCHING_COMMANDS,
-    UNKNOWN
-} CMD_PARSE_STATUS;
-
 char *
 get_last_command(){
     return last_command_input_buffer;
@@ -241,7 +230,7 @@ build_tlv_buffer(char **tokens,
     return status;;
 }
 
-void
+CMD_PARSE_STATUS
 parse_input_cmd(char *input, unsigned int len){
 
     char** tokens = NULL;
@@ -250,10 +239,10 @@ parse_input_cmd(char *input, unsigned int len){
 
     tokens = tokenizer(input, ' ', &token_cnt);
     if(!token_cnt)
-        return;
+        return INCOMPLETE_COMMAND;
 
     if(token_cnt > 1 && 
-            ((strncmp(tokens[0], "do", 2) == 0)) &&
+            ((strncmp(tokens[0], DO, 2) == 0)) &&
             (get_cmd_tree_cursor() != libcli_get_root())) /*do commands are not allowed from root*/
 
     {
@@ -308,11 +297,15 @@ parse_input_cmd(char *input, unsigned int len){
         restore_checkpoint_serialize_buffer(tlv_buff);
     else
         reset_serialize_buffer(tlv_buff);
+
+    return status;
 }
 
 
 void
 command_parser(void){
+
+    CMD_PARSE_STATUS status = UNKNOWN;
 
     printf("run - \'show help\' cmd to learn more");
     place_console(1);
@@ -338,13 +331,17 @@ command_parser(void){
 
         cons_input_buffer[strlen(cons_input_buffer) - 1] = '\0';
          
-        parse_input_cmd(cons_input_buffer, strlen(cons_input_buffer));
+        status = parse_input_cmd(cons_input_buffer, strlen(cons_input_buffer));
 
         if(strncmp(cons_input_buffer, "repeat", strlen(cons_input_buffer)) == 0){
             memset(cons_input_buffer, 0, CONS_INPUT_BUFFER_SIZE);
             place_console(1);
             continue;
         }
+
+        if(status == COMPLETE)
+            record_command(CMD_HIST_RECORD_FILE, cons_input_buffer, strlen(cons_input_buffer));
+
         memset(last_command_input_buffer, 0, CONS_INPUT_BUFFER_SIZE);
 
         memcpy(last_command_input_buffer, cons_input_buffer, strlen(cons_input_buffer));

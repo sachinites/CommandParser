@@ -26,6 +26,7 @@ clean:
 	rm exe
 	rm *.o
 	rm ${CLILIB}
+	rm CMD_HIST_RECORD_FILE.txt
 install:
 	cp ${CLILIB} /usr/local/lib/
 	cp libcli.h /usr/include/

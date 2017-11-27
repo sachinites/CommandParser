@@ -25,7 +25,7 @@
 #include "clicbext.h"
 #include "string_util.h"
 
-extern void
+extern CMD_PARSE_STATUS
 parse_input_cmd(char *input, unsigned int len);
 
 extern char *
@@ -219,23 +219,70 @@ display_cmd_expansion_callback(param_t *param, ser_buff_t *b, op_mode enable_or_
 
 /* show history calback*/
 
-ser_buff_t *file_read_buffer = NULL;
+static char file_cmsd_size[FILE_CMD_SIZE_MAX];
 
  int
 show_history_callback(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
+   
+    unsigned int cmd_counter = 0;
+
+    unsigned long cmd_offset[MAX_SAVED_CMDS];
+
+    memset(&cmd_offset, 0, MAX_SAVED_CMDS * sizeof(unsigned long));
+    FILE *f = fopen(CMD_HIST_RECORD_FILE, "r");
     
-    FILE *f = fopen("LIBCLI_HIST_FILE", "r");
     if(!f){
         printf("Error : History file could not be read\n");
         return 0;
     }
-#if 0
-    unsigned int i = 0;
-    tlv_struct_t *tlv = NULL;
+   
+   memset(file_cmsd_size, 0, FILE_CMD_SIZE_MAX);
+  
+   cmd_offset[cmd_counter++] = ftell(f);
+   while(fgets(file_cmsd_size, FILE_CMD_SIZE_MAX, f) != NULL) {
+       printf("%d. %s", cmd_counter - 1, file_cmsd_size);
+       cmd_offset[cmd_counter++] = ftell(f);
+       memset(file_cmsd_size, 0, FILE_CMD_SIZE_MAX);
+   } 
+ 
+    int cmd_choice;
+    printf("Enter command no to trigger : ");
+    scanf("%d", &cmd_choice);
+    if(!(cmd_choice >= 0 && cmd_choice < cmd_counter)){
+        printf("Invalid choice\n");
+        fclose(f) ;
+        return 0;
+    }
 
-    tlv = (tlv_struct_t *)(b->b);
-#endif
+    
+   fseek(f, cmd_offset[cmd_choice], SEEK_SET);
+   memset(file_cmsd_size, 0, FILE_CMD_SIZE_MAX);
+   fgets(file_cmsd_size, FILE_CMD_SIZE_MAX, f);
+   file_cmsd_size[FILE_CMD_SIZE_MAX -1] = '\0';
+
+   printf("Command to be triggered : %s", file_cmsd_size); 
+   parse_input_cmd(file_cmsd_size, strlen(file_cmsd_size));   
+
+   fclose(f) ;
    return 0; 
+}
+
+ void
+record_command(char *hist_file, char *cons_input_buffer, unsigned int cmd_len){
+
+    assert(hist_file || cons_input_buffer || !cmd_len);
+    
+    static unsigned int cmd_counter = 0;
+    
+    if(cmd_counter == MAX_SAVED_CMDS){
+        printf("Record file limix (%d) reached, cmd not recorded\n", cmd_counter);
+        return;
+    }
+    FILE *f = fopen(CMD_HIST_RECORD_FILE, "a");
+    fwrite(cons_input_buffer, cmd_len, 1, f);
+    fwrite("\n", 1, 1, f);
+    cmd_counter++;
+    fclose(f);
 }
 
 int
@@ -301,14 +348,14 @@ show_help_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
     printf("========================\n");
     printf("1. Use '%s' Character after the command to enter command mode\n", MODE_CHARACTER);
     printf("2. Use '%s' Character after the command to see possible follow up suboptions\n", SUBOPTIONS_CHARACTER);
-    printf("3. Use 'do' from within the config branch to directly trigger operational commands\n");
+    printf("3. Use '%s' from within the config branch to directly trigger operational commands\n", DO);
     printf("4. Use '%s' Character after the command to see possible complete command completions\n", CMD_EXPANSION_CHARACTER);
     printf("5. Built-in commands:\n");
-    printf("    a. cls - clear screen\n");
-    printf("    b. end - jump to top of cmd tree\n");
-    printf("    c. exit - jump one level up of command tree\n");
-    printf("    d. config [no] console name <console name> - set/unset new console name\n");
-    printf("    e. config [no] supportsave enable - enable/disable supportsave facility\n");
+    printf("    a. %s - clear screen\n", CLEAR_SCR_STRING);
+    printf("    b. %s - jump to top of cmd tree\n", GOTO_TOP_STRING);
+    printf("    c. %s - jump one level up of command tree\n", GOTO_ONE_LVL_UP_STRING);
+    printf("    d. config [%s] console name <console name> - set/unset new console name\n", NEGATE_CHARACTER);
+    printf("    e. config [%s] supportsave enable - enable/disable supportsave facility\n", NEGATE_CHARACTER);
     printf("    f. debug show cmdtree - Show entire command tree\n");
     printf("    g. show history - show history of commands triggered\n");
     printf("    h. repeat - repeat the last command\n");
