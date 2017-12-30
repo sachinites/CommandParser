@@ -36,6 +36,7 @@ static param_t root;
 static param_t do_hook;
 static param_t show;
 static param_t debug;
+static param_t debug_show;
 static param_t config;
 static param_t clear;
 static param_t run;
@@ -83,6 +84,11 @@ libcli_get_show_hook(void){
 param_t *
 libcli_get_debug_hook(void){
     return &debug;
+}
+
+param_t *
+libcli_get_debug_show_hook(void){
+    return &debug_show;
 }
 
 param_t *
@@ -247,7 +253,6 @@ init_libcli(){
 
     /*debug show cmdtree*/
 
-    static param_t debug_show;
     init_param(&debug_show, CMD, "show", 0, 0, INVALID, 0, "debug show commands");
     libcli_register_param(&debug, &debug_show);
 
