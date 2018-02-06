@@ -189,7 +189,8 @@ build_tlv_buffer(char **tokens,
                  * because we would not want cmd code in subsequent comds in mode*/
                 mark_checkpoint_serialize_buffer(tlv_buff);
                 collect_tlv(tlv_buff, &command_code_tlv);
-                mode_enter_callback(parent, tlv_buff, enable_or_disable);
+                mode_enter_callback(parent, tlv_buff, 
+                    enable_or_disable == CONFIG_DISABLE ? CONFIG_DISABLE : CONFIG_ENABLE);
             }
 
             else if(param == libcli_get_cmd_expansion_param())
