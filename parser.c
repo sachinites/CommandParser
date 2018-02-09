@@ -237,7 +237,7 @@ parse_input_cmd(char *input, unsigned int len){
     char** tokens = NULL;
     size_t token_cnt = 0;
     CMD_PARSE_STATUS status = COMPLETE;
-
+    
     tokens = tokenizer(input, ' ', &token_cnt);
     if(!token_cnt)
         return INCOMPLETE_COMMAND;
@@ -315,7 +315,8 @@ command_parser(void){
     command_code_tlv.leaf_type = INT;
     strncpy(command_code_tlv.leaf_id, "CMDCODE", LEAF_ID_SIZE);
     command_code_tlv.leaf_id[LEAF_ID_SIZE -1] = '\0';
-    
+    memset(cons_input_buffer, 0, CONS_INPUT_BUFFER_SIZE);
+
     while(1){
 
         if((fgets((char *)cons_input_buffer, sizeof(cons_input_buffer)-1, stdin) == NULL)){

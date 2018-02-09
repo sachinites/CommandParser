@@ -11,7 +11,7 @@
  *       Compiler:  gcc
  *
  *         Author:  Er. Abhishek Sagar, Networking Developer (AS), sachinites@gmail.com
- *        Company:  Brocade Communications(Jul 2012- Mar 2016), Current : Juniper Networks(Apr 2017 - Present)
+ *        Company:  Brocade Communications(Jul 2012- Mar 2017), Current : Juniper Networks(Apr 2017 - Present)
  *
  * =====================================================================================
  */
@@ -71,9 +71,10 @@ char** tokenizer(char* _a_str, const char a_delim, size_t *token_cnt){
    
     char *token = NULL;
     int i = 0;
-
+    char delim[2];
     memset(a_str, 0, CONS_INPUT_BUFFER_SIZE);
-    memcpy(a_str, _a_str, strlen(_a_str));
+    strncpy(a_str, _a_str, strlen(_a_str));
+    a_str[strlen(_a_str)] = '\0';
 
     string_space_trim(a_str);
 
@@ -82,7 +83,10 @@ char** tokenizer(char* _a_str, const char a_delim, size_t *token_cnt){
         return NULL;
     }
 
-    token = strtok(a_str, &a_delim);
+    delim[0] = a_delim;
+    delim[1] = '\0';
+
+    token = strtok(a_str, delim);
     if(token){
         untokenize(i);
         strncpy(tokens[i], token, strlen(token));
@@ -96,13 +100,13 @@ char** tokenizer(char* _a_str, const char a_delim, size_t *token_cnt){
     /* walk through other tokens */
     while( token != NULL ) 
     {
-        token = strtok(NULL, &a_delim);
+        token = strtok(NULL, delim);
         if(token){
             untokenize(i);
             strncpy(tokens[i], token, strlen(token));
             i++;
             if(i == MAX_CMD_TREE_DEPTH + 1){
-                printf("Warning : Max token limit (= %d) support exceeded\n", MAX_CMD_TREE_DEPTH);
+                //printf("Warning : Max token limit (= %d) support exceeded\n", MAX_CMD_TREE_DEPTH);
                 re_init_tokens(MAX_CMD_TREE_DEPTH);
                 *token_cnt = 0;
                 return &tokens[0];
