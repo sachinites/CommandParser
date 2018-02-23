@@ -51,6 +51,9 @@ param_t *
 libcli_get_run_hook(void);
 
 void
+enable_show_extension_param_brief(param_t *param);
+
+void
 set_param_cmd_code(param_t *param, int cmd_code);
 
 /*See the definition of this fn to know about arguments*/
@@ -71,6 +74,8 @@ void
 libcli_register_display_callback(param_t *param,
                                  display_possible_values_callback disp_callback);
 
+show_ext_t
+get_show_extension_type(ser_buff_t *b);
 /*After this call, libcli_register_param MUST not be invoked on param*/
 void
 support_cmd_negation(param_t *param);

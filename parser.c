@@ -177,8 +177,24 @@ build_tlv_buffer(char **tokens,
 
         case COMPLETE:
             printf(ANSI_COLOR_GREEN "Parse Success.\n" ANSI_COLOR_RESET);
+            if(param == libcli_get_show_brief_extension_param()){
+                if(!IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(parent)){
+                    status = INCOMPLETE_COMMAND;
+                    printf(ANSI_COLOR_YELLOW "Error : Incomplete Command\n" ANSI_COLOR_RESET);
+                    break;
+                }
+                enable_or_disable = OPERATIONAL;
+                /*Add the show extension param TLV to tlv buffer, this is really not an
+                 * application callback*/
+                INVOKE_APPLICATION_CALLBACK_HANDLER(param, tlv_buff, enable_or_disable);
+                memset(command_code_tlv.value, 0, LEAF_VALUE_HOLDER_SIZE);
+                sprintf(command_code_tlv.value, "%d", parent->CMDCODE);
+                collect_tlv(tlv_buff, &command_code_tlv); 
+                /*Now invoke the pplication handler*/
+                INVOKE_APPLICATION_CALLBACK_HANDLER(parent, tlv_buff, enable_or_disable);
+            }
 
-            if(param == libcli_get_suboptions_param())
+            else if(param == libcli_get_suboptions_param())
                 display_sub_options_callback(parent, tlv_buff, MODE_UNKNOWN);
 
             else if(param == libcli_get_mode_param()){

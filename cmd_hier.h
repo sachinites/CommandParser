@@ -130,6 +130,9 @@ libcli_get_cmd_expansion_param();
 param_t *
 libcli_get_repeat_hook(void);
 
+param_t *
+libcli_get_show_brief_extension_param(void);
+
 static inline int
 is_cmd_string_match(param_t *param, const char *str){
     return (strncmp(param->cmd_type.cmd->cmd_name, 

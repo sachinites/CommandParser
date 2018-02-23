@@ -45,7 +45,7 @@ show_ip_igmp_groups_handler(param_t *param, ser_buff_t *tlv_buf, op_mode enable_
     dump_tlv_serialized_buffer(tlv_buf);
     
 #if 0
-    TLV_LOOP_BEGIN(tlv_buf, tlv, i){
+    TLV_LOOP(tlv_buf, tlv, i){
         if(strncmp(tlv->leaf_id, "group-ip", strlen("group-ip")) == 0){
             printf("Group Ip Recvd in application = %s\n", tlv->value);   
         }
@@ -102,11 +102,11 @@ main(int argc, char **argv){
     static param_t ip;
     init_param(&ip, CMD, "ip", 0, 0, INVALID, 0, "Internet Protocol(IP)");
     libcli_register_param(show, &ip);
-#if 0
+
     static param_t ipv6;
     init_param(&ipv6, CMD, "ipv6", 0, 0, INVALID, 0, "Internet Protocol(IPV6)");
     libcli_register_param(show, &ipv6);
-#endif
+
     static param_t config_router;
     init_param(&config_router, CMD, "router", 0, 0, INVALID, 0, "Configuration Router");
     libcli_register_param(config, &config_router);

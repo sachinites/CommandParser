@@ -49,6 +49,18 @@
 #define CLEAR_SCR_STRING        "cls"
 #define DO                      "do"
 
+#define SHOW_EXTENSION_PARAM            "SHOW_EXTENSIONS"
+#define SHOW_EXTENSION_PARAM_BRIEF      "SHOW_BRIEF"
+#define SHOW_EXTENSION_PARAM_DETAIL     "SHOW_DETAIL"
+#define SHOW_EXTENSION_PARAM_EXTENSIVE  "SHOW_EXTENSIVE"
+
+typedef enum{
+    brief,
+    detail,
+    extensive,
+    none
+} show_ext_t;
+
 /* Default Command Codes*/
 /*CMD codes need not be unique, but should be unique with in same command sharing 
  * the same command handler. For example, cmd code of SHOW_HISTORY and SHOW_HISTORY_N 

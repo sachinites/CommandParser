@@ -41,6 +41,7 @@ static param_t config;
 static param_t clear;
 static param_t run;
 static param_t repeat;
+static param_t show_brief_extension;
 
 /* Default param Capabilities*/
 
@@ -109,6 +110,17 @@ libcli_get_run_hook(void){
 param_t *
 libcli_get_repeat_hook(void){
     return &repeat;
+}
+
+param_t *
+libcli_get_show_brief_extension_param(void){
+    return &show_brief_extension;
+}
+
+void
+enable_show_extension_param_brief(param_t *param){
+    assert(IS_APPLICATION_CALLBACK_HANDLER_REGISTERED(param));
+    libcli_register_param(param, libcli_get_show_brief_extension_param());
 }
 /* Cursor functions*/
 void
@@ -185,6 +197,36 @@ ctrlC_signal_handler(int sig){
     printf("Ctrl-C pressed\n");
     printf("Bye Bye\n");
     exit(0);
+}
+
+show_ext_t
+get_show_extension_type(ser_buff_t *b){
+    
+    assert(b);
+    unsigned int tlv_units = get_serialize_buffer_size(b)/sizeof(tlv_struct_t);
+    tlv_struct_t *show_ext_tlv = NULL;
+
+    if(tlv_units == 0)
+        return none;
+
+    if(tlv_units == 1){
+        show_ext_tlv = (tlv_struct_t *)(b->b);
+    }
+    else{
+        show_ext_tlv = (tlv_struct_t *)(b->b) + (tlv_units -2);
+    }
+    assert(show_ext_tlv);
+
+    if(strncmp(show_ext_tlv->leaf_id, SHOW_EXTENSION_PARAM, strlen(SHOW_EXTENSION_PARAM)))
+        return none;
+    if(strncmp(show_ext_tlv->value, SHOW_EXTENSION_PARAM_BRIEF, strlen(SHOW_EXTENSION_PARAM_BRIEF)) == 0)
+        return brief;
+    if(strncmp(show_ext_tlv->value, SHOW_EXTENSION_PARAM_DETAIL, strlen(SHOW_EXTENSION_PARAM_DETAIL)) == 0)
+        return detail;
+    if(strncmp(show_ext_tlv->value, SHOW_EXTENSION_PARAM_EXTENSIVE, strlen(SHOW_EXTENSION_PARAM_EXTENSIVE)) == 0)
+        return extensive;
+    assert(0);
+    return none;
 }
 
 void 
@@ -326,6 +368,8 @@ init_libcli(){
     HIDE_PARAM(&end_cmd);
     libcli_register_param(0, &end_cmd);
 
+    /*initialise show extension params*/
+    init_param(&show_brief_extension, CMD, "brief", show_extension_param_handler, 0, INVALID, 0, "brief output");
     /*Command Negation API Should be called by application and not by infra
      * else application would not be allowed to add more children into config 
      * param*/
@@ -473,6 +517,8 @@ libcli_register_param(param_t *parent, param_t *child){
             continue;
         
         parent->options[i] = child;
+        if(child != libcli_get_show_brief_extension_param())
+            child->parent = parent;
         child->parent = parent;
         return;
     }
