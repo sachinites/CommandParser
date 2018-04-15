@@ -39,9 +39,6 @@ list_vlans(param_t *param, ser_buff_t *tlv_buf){
 int
 show_ip_igmp_groups_handler(param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_disable){
 
-    tlv_struct_t *tlv = NULL;   
-    int i = 0;
-   
     dump_tlv_serialized_buffer(tlv_buf);
     
 #if 0
@@ -91,7 +88,7 @@ main(int argc, char **argv){
     /*Level 0*/
 
     param_t *show   = libcli_get_show_hook();
-    param_t *debug  = libcli_get_debug_hook();
+    //param_t *debug  = libcli_get_debug_hook();
     param_t *config = libcli_get_config_hook();
 
     static param_t cmsh;
