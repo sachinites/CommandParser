@@ -275,7 +275,6 @@ record_command(char *hist_file, char *cons_input_buffer, unsigned int cmd_len){
     static unsigned int cmd_counter = 0;
     
     if(cmd_counter == MAX_SAVED_CMDS){
-        printf("Record file limix (%d) reached, cmd not recorded\n", cmd_counter);
         return;
     }
     FILE *f = fopen(CMD_HIST_RECORD_FILE, "a");
