@@ -1,5 +1,5 @@
-#include "cmdtlv.h"
-#include "libcli.h"
+#include "CommandParser/cmdtlv.h"
+#include "CommandParser/libcli.h"
 
 #define CMDODE_SHOW_NODE 1
 #define CMDODE_SHOW_NODE_LOOPBACK 2
@@ -41,7 +41,7 @@ main(int argc, char **argv){
     param_t *clear  = libcli_get_clear_hook();
     param_t *run    = libcli_get_run_hook();
 
-    /*Implementing CMD1*/
+    /*Implementing CMD1 : show node <node-name>*/
     {
         /*show node*/
         static param_t node;    /*Get the param_t variable, either a static memory or heap memory, not stack memory*/
@@ -86,7 +86,7 @@ main(int argc, char **argv){
                         0,              /*Applicable only for LEAF params. Always NULL for CMD param*/
                         INVALID,        /*Always INVALID for CMD params*/
                         0,              /*Always NULL for CMD params*/
-                        "Help : node"); /*Help String*/
+                        "Help : loopback"); /*Help String*/
 
                 libcli_register_param(&node_name, &loopback); /*Add loopback param as suboption of <node-name> param*/
 
@@ -102,7 +102,7 @@ main(int argc, char **argv){
                             IPV4,                    /*leaf param value type. loopback address is IPV4 type, hence pass IPV4*/
                             "lo-address",           /*Applicable only for LEAF param. Give some name to leaf-params. It is this string that we will parse in application code to find the value passed by the user*/
                             "Help : Node's loopback address");  /*Help String*/
-                    libcli_register_param(&node_name, &loopback_address);   /*Add node_name leaf param as suboption of <node-name> param. Note that: show --> node --> node_name --> lo-address has been chained*/
+                    libcli_register_param(&loopback, &loopback_address);   /*Add node_name leaf param as suboption of <node-name> param. Note that: show --> node --> node_name --> lo-address has been chained*/
                     /* The below API should be called for param at which the command is supposed to invoke application callback rouine. 
                      * This CMDODE_SHOW_NODE_LOOPBACK code is sent to application using which we find which command was triggered, and accordingly what 
                      * are expected leaf params we need to parse. More on this ater.*/
