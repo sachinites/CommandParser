@@ -333,7 +333,8 @@ load_file_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
 
 	assert(file_name);
 	
-	parse_file(file_name);	
+	parse_file(file_name);
+	return 0;
 }
 
 int
