@@ -19,7 +19,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "string_util.h"
+#include <errno.h>
 #include "cmdtlv.h"
 #include "cliconst.h"
 #include "css.h"
@@ -29,6 +31,8 @@ extern param_t root;
 extern leaf_type_handler leaf_handler_array[LEAF_MAX];
 extern ser_buff_t *tlv_buff;
 char console_name[TERMINAL_NAME_SIZE];
+
+static bool cmd_recording_enabled = true;
 
 static param_t*
 array_of_possibilities[POSSIBILITY_ARRAY_SIZE];
@@ -358,8 +362,13 @@ command_parser(void){
             continue;
         }
 
-        if(status == COMPLETE)
-            record_command(CMD_HIST_RECORD_FILE, cons_input_buffer, strlen(cons_input_buffer));
+        if(status == COMPLETE && cmd_recording_enabled) {
+            record_command(CMD_HIST_RECORD_FILE,
+						   cons_input_buffer,
+						   strlen(cons_input_buffer));
+		}
+
+		cmd_recording_enabled = true;
 
         memset(last_command_input_buffer, 0, CONS_INPUT_BUFFER_SIZE);
 
@@ -372,4 +381,39 @@ command_parser(void){
         place_console(1);
     }
 }
+
+void
+parse_file(char *file_name) {
+
+	char line[256];
+	char** tokens = NULL;
+	size_t token_cnt = 0;
+
+	FILE *fptr = fopen(file_name, "r");
+	
+	if (!fptr) {
+	
+		printf("Error : Could not open log file %s, errno = %d\n",
+				file_name, errno);
+		return;
+	}
+
+	memset(line, 0, sizeof(line));
+
+	cmd_recording_enabled = false;
+
+	while (fgets(line, sizeof(line) - 1, fptr)) {
+
+		printf("Executing : %s", line);
+	
+		tokens = tokenizer(line, ' ', &token_cnt);		
+
+		reset_serialize_buffer(tlv_buff);
+		build_tlv_buffer(tokens, token_cnt);
+		memset(line, 0, sizeof(line));
+	}
+	
+	fclose(fptr);
+	place_console(1);
+}	
 

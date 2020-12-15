@@ -157,6 +157,9 @@ parse_input_cmd(char *input, unsigned int len);
 extern void
 place_console(char new_line);
 
+extern void
+load_file_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable);
+
 void
 libcli_register_display_callback(param_t *param, 
                                 display_possible_values_callback disp_callback){
@@ -306,6 +309,15 @@ init_libcli(){
     /*configure hook*/
     init_param(&config, CMD, "config", config_mode_enter_handler, 0, INVALID, 0, "config cmds");
     libcli_register_param(&root, &config);
+
+	static param_t load;
+	init_param(&load, CMD, "load", 0, 0, INVALID, 0, "load cmds");
+	libcli_register_param(&config, &load);
+
+	static param_t file_name;
+	init_param(&file_name, LEAF, 0, load_file_handler, 0, STRING, "file-name", "Name of the file");
+	libcli_register_param(&load, &file_name);
+	set_param_cmd_code(&file_name, CONFIG_LOAD_FILE);
 
     static param_t supportsave;
     init_param(&supportsave, CMD, "supportsave", 0 , 0, INVALID, 0, "Collect Support Save Data");

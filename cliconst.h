@@ -73,7 +73,7 @@ typedef enum{
 #define CONFIG_SUPPORTSAVE_ENABLE   5
 #define CONFIG_CONSOLEN_NAME_NAME   6
 #define DEBUG_SHOW_CMDTREE          7
-
+#define CONFIG_LOAD_FILE			8
 
 typedef enum{
     COMPLETE,
