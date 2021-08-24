@@ -252,8 +252,15 @@ build_tlv_buffer(char **tokens,
     return status;;
 }
 
+static void
+parser_process_repeat_cmd(char *next_token) {
+
+    INVOKE_APPLICATION_CALLBACK_HANDLER(
+            libcli_get_repeat_hook() , 0, OPERATIONAL);
+}
+
 CMD_PARSE_STATUS
-parse_input_cmd(char *input, unsigned int len){
+parse_input_cmd(char *input, unsigned int len, bool *is_repeat_cmd){
 
     char** tokens = NULL;
     size_t token_cnt = 0;
@@ -300,6 +307,11 @@ parse_input_cmd(char *input, unsigned int len){
             printf("Info : do is supported from within config mode only\n");
     }
 
+    else if (strncmp (tokens[0], "repeat" , strlen(tokens[0])) == 0) {
+        parser_process_repeat_cmd(token_cnt == 1 ? 0 : tokens[1]);
+        *is_repeat_cmd = true;
+    }   
+
     else if((strncmp(tokens[0], GOTO_ONE_LVL_UP_STRING, strlen(GOTO_ONE_LVL_UP_STRING)) == 0) && (token_cnt == 1))
         go_one_level_up_cmd_tree(get_cmd_tree_cursor());
     
@@ -327,6 +339,7 @@ parse_input_cmd(char *input, unsigned int len){
 void
 command_parser(void){
 
+    bool is_repeat_cmd;
     CMD_PARSE_STATUS status = UNKNOWN;
 
     printf("run - \'show help\' cmd to learn more");
@@ -339,6 +352,8 @@ command_parser(void){
     memset(cons_input_buffer, 0, CONS_INPUT_BUFFER_SIZE);
 
     while(1){
+
+        is_repeat_cmd = false;
 
         if((fgets((char *)cons_input_buffer, sizeof(cons_input_buffer)-1, stdin) == NULL)){
             printf("error in reading from stdin\n");
@@ -354,9 +369,9 @@ command_parser(void){
 
         cons_input_buffer[strlen(cons_input_buffer) - 1] = '\0';
          
-        status = parse_input_cmd(cons_input_buffer, strlen(cons_input_buffer));
+        status = parse_input_cmd(cons_input_buffer, strlen(cons_input_buffer), &is_repeat_cmd);
 
-        if(strncmp(cons_input_buffer, "repeat", strlen(cons_input_buffer)) == 0){
+        if( is_repeat_cmd ) {
             memset(cons_input_buffer, 0, CONS_INPUT_BUFFER_SIZE);
             place_console(1);
             continue;
@@ -371,9 +386,7 @@ command_parser(void){
 		cmd_recording_enabled = true;
 
         memset(last_command_input_buffer, 0, CONS_INPUT_BUFFER_SIZE);
-
         memcpy(last_command_input_buffer, cons_input_buffer, strlen(cons_input_buffer));
-
         last_command_input_buffer[strlen(last_command_input_buffer)] = '\0';
 
         memset(cons_input_buffer, 0, CONS_INPUT_BUFFER_SIZE);
