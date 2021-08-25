@@ -25,6 +25,8 @@
 #include "clicbext.h"
 #include "string_util.h"
 
+int GL_FD_OUT = STDOUT_FILENO;
+
 extern CMD_PARSE_STATUS
 parse_input_cmd(char *input, unsigned int len);
 
@@ -108,8 +110,8 @@ float_validation_handler(leaf_t *leaf, char *value_passed){
 int
 boolean_validation_handler(leaf_t *leaf, char *value_passed){
 
-    if((strncmp(value_passed, "TRUE", strlen("TRUE")) == 0) || 
-            (strncmp(value_passed, "FALSE", strlen("FALSE")) ==0))
+    if((strncmp(value_passed, "true", strlen("true")) == 0) || 
+            (strncmp(value_passed, "false", strlen("false")) ==0))
         return VALIDATION_SUCCESS;
 
     return VALIDATION_FAILED;
@@ -316,6 +318,7 @@ config_mode_enter_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disab
 
 extern void
 parse_file(char *file_name);
+
 int
 load_file_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
 
@@ -333,7 +336,7 @@ load_file_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
 
 	assert(file_name);
 	
-	parse_file(file_name);
+	parse_file(file_name);	
 	return 0;
 }
 
@@ -388,9 +391,8 @@ show_help_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
     printf("    f. debug show cmdtree - Show entire command tree\n");
     printf("    g. show history - show history of commands triggered\n");
     printf("    h. repeat - repeat the last command\n");
-    printf(ANSI_COLOR_GREEN"    Course URL: https://www.udemy.com/course/clilibrary/?referralCode=7B5A69E6F0127E0C9376\n" ANSI_COLOR_RESET);
-    printf(ANSI_COLOR_GREEN"    All My Courses at one place (Available on Discounts or even free): www.csepracticals.com\n" ANSI_COLOR_RESET);
-    printf(ANSI_COLOR_YELLOW"                         Author : Abhishek Sagar, Juniper Networks\n\n" ANSI_COLOR_RESET);
+	printf(ANSI_COLOR_YELLOW "                      Author : Abhishek Sagar, Juniper Networks\n" ANSI_COLOR_RESET);
+	printf(ANSI_COLOR_YELLOW "                      Visit : www.csepracticals.com for more courses and projects\n" ANSI_COLOR_RESET);
     return 0;
 }
 

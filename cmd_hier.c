@@ -32,6 +32,11 @@ leaf_type_handler leaf_handler_array[LEAF_MAX];
 ser_buff_t *tlv_buff;
 static param_t *cmd_tree_cursor = NULL;
 
+extern int
+ut_test_handler (param_t *param, 
+                            ser_buff_t *tlv_buf, 
+                            op_mode enable_or_disable);
+
 /*Default zero level commands hooks. */
 static param_t root;
 static param_t do_hook;
@@ -357,7 +362,24 @@ init_libcli(){
         init_param(&terminate, CMD, "term", cli_terminate_handler, 0, INVALID, 0, "Terminate appln");
         libcli_register_param(&run, &terminate);
     }
-        
+    {
+        /* run ut <file path> <tc no> */
+        static param_t ut;
+        init_param(&ut, CMD, "ut", 0, 0, INVALID, 0, "Unit Test");
+        libcli_register_param(&run, &ut);
+        {
+            static param_t ut_file_path;
+            init_param(&ut_file_path, LEAF, 0, 0, 0, STRING, "ut-file-name", "UT file name");
+            libcli_register_param(&ut, &ut_file_path);
+            {
+                static param_t tc_no;
+                init_param(&tc_no, LEAF, 0, ut_test_handler, 0, INT, "tc-no", "Test Case Number");
+                libcli_register_param(&ut_file_path, &tc_no);
+                set_param_cmd_code(&tc_no, CMDCODE_RUN_UT_TC);
+            }
+        }
+    }
+
     /*Hook up the show/debug/clear operational command in Do Hook*/
     init_param(&do_hook, CMD, "DO_HOOK", 0, 0, INVALID, 0, "operational commands shortcut");
     do_hook.options[MODE_PARAM_INDEX] = libcli_get_suboptions_param(); // A hack, just fill it 

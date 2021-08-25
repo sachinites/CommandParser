@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include "string_util.h"
 #include <errno.h>
 #include "cmdtlv.h"
@@ -31,6 +32,8 @@ extern param_t root;
 extern leaf_type_handler leaf_handler_array[LEAF_MAX];
 extern ser_buff_t *tlv_buff;
 char console_name[TERMINAL_NAME_SIZE];
+extern void
+run_test_case(unsigned char *file_name, uint16_t tc_no);
 
 static bool cmd_recording_enabled = true;
 
@@ -321,6 +324,22 @@ parse_input_cmd(char *input, unsigned int len, bool *is_repeat_cmd){
     
     else if((strncmp(tokens[0], CLEAR_SCR_STRING, strlen(CLEAR_SCR_STRING)) == 0) && (token_cnt == 1))
         clear_screen_handler(0, 0, MODE_UNKNOWN);
+
+    else if (!strncmp(tokens[0], "run" , strlen("run"))  && 
+	     !strncmp(tokens[1], "ut" , strlen("ut"))    &&
+	     token_cnt == 4 ) {
+
+	    char *pend;
+	    unsigned char ut_file_name[128];
+	    long int tc_no = strtol(tokens[3], &pend, 10);
+	    if (!tc_no) {
+		printf("Error : Invalid Tc No\n");
+	    }
+	    else {
+		strncpy(ut_file_name, tokens[2], strlen(tokens[2]));
+		run_test_case (ut_file_name, (uint16_t) tc_no);
+	    }
+    }
 
     else 
         status = build_tlv_buffer(tokens, token_cnt); 

@@ -28,7 +28,7 @@
 #define TERMINAL_NAME_SIZE      CONS_INPUT_BUFFER_SIZE
 #define TLV_MAX_BUFFER_SIZE     1024
 #define POSSIBILITY_ARRAY_SIZE  10 
-#define DEFAULT_DEVICE_NAME     "root@juniper"
+#define DEFAULT_DEVICE_NAME     "tcp-ip-stack"
 #define MODE_CHARACTER          "/"
 #define SUBOPTIONS_CHARACTER    "?"
 #define CMD_EXPANSION_CHARACTER "."
@@ -74,6 +74,7 @@ typedef enum{
 #define CONFIG_CONSOLEN_NAME_NAME   6
 #define DEBUG_SHOW_CMDTREE          7
 #define CONFIG_LOAD_FILE			8
+#define CMDCODE_RUN_UT_TC   9 /* run ut <ut-file-name> <tc-no>*/
 
 typedef enum{
     COMPLETE,
