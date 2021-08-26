@@ -330,17 +330,13 @@ parse_input_cmd(char *input, unsigned int len, bool *is_repeat_cmd){
 	     !strncmp(tokens[1], "ut" , strlen("ut"))    &&
 	     token_cnt == 4 ) {
 
-	    char *pend;
-	    long int tc_no = strtol(tokens[3], &pend, 10);
-	    if (!tc_no) {
-		printf("Error : Invalid Tc No\n");
-	    }
-	    else {
-		strncpy(file_name, tokens[2], strlen(tokens[2]));
-        	file_name[strlen(tokens[2])] = '\0';
-		run_test_case (file_name, (uint16_t) tc_no);
-	    }
+        char *pend;
+        long int tc_no = strtol(tokens[3], &pend, 10);
+        strncpy(file_name, tokens[2], strlen(tokens[2]));
+        file_name[strlen(tokens[2])] = '\0';
+        run_test_case(file_name, tc_no);
     }
+    
     else if ( !strncmp(tokens[0], "config" , strlen("config"))  &&
 	      !strncmp(tokens[1], "load" , strlen("load"))      &&
 	      token_cnt == 3 ) {

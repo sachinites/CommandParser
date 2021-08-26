@@ -141,22 +141,26 @@ tc_cleanup_result_list(glthread_t *result_head) {
     ITERATE_GLTHREAD_END(result_head, curr);
 }
 
-void
+bool
 run_test_case(unsigned char *file_name, uint16_t tc_no) {
 
+    char *fget_ptr;
     uint16_t current_step_no;
+    uint16_t current_tc_no;
     char *token;
     unsigned char line[512];
     bool is_repeat_cmd = false;
     glthread_t result_head;
+    bool tc_found = false;
     CMD_PARSE_STATUS status = UNKNOWN;
     
+     fget_ptr = NULL;
     init_glthread(&result_head);
 
     FILE *fp = fopen (file_name, "r");
     assert(fp);
 
-    while ( fgets (line, sizeof(line), fp) !=NULL ) {
+    while ( fget_ptr = fgets (line, sizeof(line), fp) ) {
 
             if (line[0] != ':') continue;
 
@@ -168,24 +172,32 @@ run_test_case(unsigned char *file_name, uint16_t tc_no) {
                 token = strtok(line, ":") ;
                 token = strtok(NULL, ":") ;
 
-                while (atoi(token) != tc_no) {
+                current_tc_no = atoi(token);
+
+                while (tc_no &&  current_tc_no != tc_no) {
 
                     /* skip to next test case */
 
-                    while ( fgets (line, sizeof(line), fp) !=NULL ) {
+                    while ( fget_ptr = fgets (line, sizeof(line), fp)) {
 
                              if (strncmp (line, ":TESTCASE-BEGIN:", strlen(":TESTCASE-BEGIN:"))) {
                                  continue;
                              }
                              break;
                     }
+
+                    if (!fget_ptr) break;
+                    
                     token = strtok(line, ":") ;
                     token = strtok(NULL, ":") ;
                 }
-               
+
+               if (!fget_ptr) break;
+
                /* Test case found */
-                printf("\n ***** Executing Test case : %s - %d ***** \n", file_name, tc_no);
+                printf("\n ***** Executing Test case : %s - %d ***** \n", file_name,  current_tc_no);
                 TC_RUNNING = true;
+                tc_found = true;
             }
 
 
@@ -194,11 +206,9 @@ run_test_case(unsigned char *file_name, uint16_t tc_no) {
                 token = strtok(line, ":") ;
                 token = strtok(NULL, ":") ;
 
-                assert(atoi(token) == tc_no);
-               
                /* Test case found */
-                printf("\n ***** Test case : %s - %d Finished ***** \n", file_name, tc_no);
-                if (  TC_RUNNING ) {
+                printf("\n ***** Test case : %s - %d Finished ***** \n", file_name,  current_tc_no);
+                if (  tc_no && TC_RUNNING ) {
                     break;
                 }
             }
@@ -314,6 +324,7 @@ run_test_case(unsigned char *file_name, uint16_t tc_no) {
 
     fclose(fp);
     TC_RUNNING = false;
+    return tc_found;
 }
 
 /* This API is not used */
