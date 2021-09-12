@@ -175,11 +175,14 @@ build_tlv_buffer(char **tokens,
             break;
 
         case CMD_NOT_FOUND:
-            printf(ANSI_COLOR_RED "Error : Following Token not registered : %s\n" ANSI_COLOR_RESET, *(tokens +i));
+            printf(ANSI_COLOR_RED "Error : Following Token not registered : %s\n"
+                        ANSI_COLOR_RESET, *(tokens +i));
             break;
 
         case INVALID_LEAF:
-            printf(ANSI_COLOR_RED "Error : Following leaf value could not be validated : %s, Expected Data type = %s\n" ANSI_COLOR_RESET, *(tokens +i), GET_LEAF_TYPE_STR(param));
+            printf(ANSI_COLOR_RED "Error : Following leaf value could not be validated"
+                    ": %s, Expected Data type = %s\n" 
+                    ANSI_COLOR_RESET, *(tokens +i), GET_LEAF_TYPE_STR(param));
             break;
 
         case COMPLETE:

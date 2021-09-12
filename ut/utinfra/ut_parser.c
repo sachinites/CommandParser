@@ -19,10 +19,12 @@
 #include "../../libcli.h"
 #include "../../cmdtlv.h"
 
+#define UT_PARSER_BUFF_MAX_SIZE 2048
+
 /* Global variables for UT parser */
 static int UT_PARSER_MSG_Q_FD; 
 static bool TC_RUNNING = false;
-static unsigned char ut_parser_recv_buff[2048];
+static unsigned char ut_parser_recv_buff[UT_PARSER_BUFF_MAX_SIZE];
 static int ut_parser_recv_buff_data_size;
 static bool ut_parser_debug = false;
 static FILE *ut_log_file = NULL;
@@ -88,6 +90,7 @@ tc_print_result (glthread_t *head) {
     glthread_t *curr;
     tc_result_t *res;
     char buff[128];
+    int pass_cnt = 0, fail_cnt = 0, total_cnt = 0;
 
     rc = sprintf(buff, "\n****  Result ******\n");
     printf("%s", buff);
@@ -101,7 +104,15 @@ tc_print_result (glthread_t *head) {
             res->step_no, res->pass ? "PASS" : "FAIL");
         printf("%s", buff);
         fwrite(buff, 1, rc, ut_log_file);
+        res->pass ? pass_cnt++ : fail_cnt++;
+        total_cnt++;
     } ITERATE_GLTHREAD_END(head, curr);
+
+    printf ("Total TC : %d   Pass : %d   Fail %d\n", total_cnt, pass_cnt, fail_cnt);
+    rc = sprintf(buff, "Total TC : %d   Pass : %d   Fail %d\n", 
+                total_cnt, pass_cnt, fail_cnt);
+    fwrite(buff, 1, rc, ut_log_file);
+    fflush(ut_log_file);
 }
 
 static void
@@ -141,6 +152,13 @@ run_test_case(unsigned char *file_name, uint16_t tc_no) {
     assert(fp);
 
     while ( fget_ptr = fgets (line, sizeof(line), fp) ) {
+
+            if (strlen(line) == 1 && line[0] == '\n') {
+                printf("\n");
+                rc = sprintf (buff, "\n");
+                fwrite(buff, 1, rc, ut_log_file);
+                fflush(ut_log_file);
+            }
 
             if (line[0] != ':') continue;
             strtok(line, "\n");
@@ -404,8 +422,20 @@ run_test_case(unsigned char *file_name, uint16_t tc_no) {
                     rc = sprintf (buff, "Output After Grep : \n");
                     fwrite(buff, 1, rc, ut_log_file);
                     fwrite(ut_parser_recv_buff, 1, ut_parser_recv_buff_data_size, ut_log_file);
-                     fflush(ut_log_file);
+                    fflush(ut_log_file);
              }
+
+
+
+             else if (strncmp (line, ":PRINT:", strlen(":PRINT:")) == 0) {
+                    token = strtok(line, ":") ;
+                    token = strtok(NULL, ":") ;
+                    printf ("INFO : %s\n", token);
+                    rc = sprintf (buff, "INFO : %s\n", token);
+                    fwrite(buff, 1, rc, ut_log_file);
+                    fflush(ut_log_file);
+             }
+
 
 
             else if (strncmp (line, ":INT_STORE1:", strlen(":INT_STORE1:")) == 0) {
@@ -514,6 +544,7 @@ cli_out(unsigned char *buff, size_t buff_size) {
         printf("%s", buff);
     }
     else {
+        assert(buff_size < UT_PARSER_BUFF_MAX_SIZE);
          if (mq_send(UT_PARSER_MSG_Q_FD, buff , buff_size + 1, 0) == -1 ) {
             printf ("mq_send failed on FD %d, errno = %d\n", UT_PARSER_MSG_Q_FD, errno);
          }
