@@ -89,10 +89,7 @@ CLI_VAL_RC
 ipv4_validation_handler(leaf_t *leaf, char *value_passed){
     /*printf("%s is called for leaf type = %s, leaf value = %s\n", __FUNCTION__,
      *                             get_str_leaf_type(leaf->leaf_type), value_passed);*/
-    if (ip_validate(value_passed)) {
-        return VALIDATION_SUCCESS;
-    }
-    return VALIDATION_FAILED;
+    return VALIDATION_SUCCESS;
 
 }
 
@@ -122,8 +119,8 @@ boolean_validation_handler(leaf_t *leaf, char *value_passed){
     return VALIDATION_FAILED;
 }
 
-CLI_VAL_RC
-enable_disable_validation_handler(leaf_t *leaf, char *value_passed){
+int
+enable_disable_validation_handler(char *value_passed){
 
      if((strncmp(value_passed, "enable", strlen("enable")) == 0) || 
             (strncmp(value_passed, "disable", strlen("disable")) ==0))
@@ -450,3 +447,20 @@ show_extension_param_handler(param_t *param, ser_buff_t *b, op_mode enable_or_di
     return 0;
 }
 
+int
+grep_pattern_validation(char *value_passed){
+
+    int i = 0;
+    while (value_passed[i] != '\0') {
+        if (value_passed[i]  == ' ' ) return VALIDATION_FAILED;
+        i++;
+    }
+    return VALIDATION_SUCCESS;
+}
+
+int
+pipe_handler (param_t *param, ser_buff_t *b, op_mode enable_or_disable){
+
+    printf ("%s() called \n", __FUNCTION__);
+    return 0;
+}

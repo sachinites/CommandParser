@@ -2,12 +2,11 @@ CC=gcc
 CFLAGS=-g -Wall
 INCLUDES=-I .
 CLILIB=libcli.a
-FSMLIB=../FSMImplementation/libfsm.a
 TARGET:exe ${CLILIB} ${FMSLIB}
 OBJ=cmd_hier.o parser.o serialize.o string_util.o clistd.o clicbext.o gluethread/glthread.o ut/utinfra/ut_parser.o
-exe:testapp.o ${CLILIB} ${FSMLIB}
+exe:testapp.o ${CLILIB}
 	@echo "Building final executable"
-	@ ${CC} ${CFLAGS} ${INCLUDES} testapp.o -o exe -L . -lcli -L ../FSMImplementation -lfsm -lpthread -lrt
+	@ ${CC} ${CFLAGS} ${INCLUDES} testapp.o -o exe -L . -lcli -lpthread -lrt
 cmd_hier.o:cmd_hier.c
 	@echo "Building cmd_hier.o"
 	@ ${CC} ${CFLAGS} -c ${INCLUDES} cmd_hier.c -o cmd_hier.o
@@ -38,9 +37,6 @@ ut/utinfra/ut_parser.o:ut/utinfra/ut_parser.c
 ${CLILIB}: ${OBJ}
 	@echo "Building Library ${CLILIB}"
 	ar rs ${CLILIB} ${OBJ}
-${FSMLIB}:
-	@echo i"Building Library ${FSMLIB}"
-	(cd ../FSMImplementation; make)
 clean:
 	rm -f exe
 	rm -f *.o
@@ -48,19 +44,13 @@ clean:
 	rm -f ut/utinfra/*.o
 	rm -f ${CLILIB}
 	rm -f CMD_HIST_RECORD_FILE.txt
-	(cd ../FSMImplementation; make clean)
 install:
 	cp ${CLILIB} /usr/local/lib/
-	cp ${FSMLIB} /usr/local/lib/
 	cp libcli.h /usr/include/
 	cp cmdtlv.h /usr/include/
-	cp ../FSMImplementation/std_fsm.h
-	cp ../FSMImplementation/fsm.h
 
 uninstall:
 	rm -f /usr/local/lib/${CLILIB}
 	rm -f /usr/local/lib/${FSMLIB}
 	rm -f /usr/include/libcli.h
 	rm -f /usr/include/cmdtlv.h
-	rm -f ../FSMImplementation/std_fsm.h
-	rm -f ../FSMImplementation/fsm.h
