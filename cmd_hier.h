@@ -133,13 +133,6 @@ libcli_get_repeat_hook(void);
 param_t *
 libcli_get_show_brief_extension_param(void);
 
-static inline int
-is_cmd_string_match(param_t *param, const char *str){
-    return (strncmp(param->cmd_type.cmd->cmd_name, 
-            str, 
-            strlen(str)));        
-}
-
 static inline param_t **
 get_child_array_ptr(param_t *param){
     return &param->options[0];
@@ -204,5 +197,23 @@ void
 build_cmd_tree_leaves_data(ser_buff_t *tlv_buff,/*Output serialize buffer*/ 
                             param_t *src_param, /*Source command*/
                             param_t *dst_param);/*Destination command*/
+
+static inline int 
+is_cmd_string_match(param_t *param,
+                    const char *str,
+                    bool *ex_match) {
+
+    *ex_match = false;
+    int str_len = strlen(str);
+    int str_len_param = strlen(param->cmd_type.cmd->cmd_name);
+
+    int rc =  (strncmp(param->cmd_type.cmd->cmd_name, 
+                str, str_len));
+
+    if ( !rc && (str_len == str_len_param )) {
+        *ex_match = true;
+    }   
+    return rc; 
+}
 
 #endif
