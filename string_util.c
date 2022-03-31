@@ -34,7 +34,7 @@ init_token_array(){
 
     int i = 0;
     for(; i < MAX_CMD_TREE_DEPTH; i++){
-        tokens[i] = calloc(1, LEAF_VALUE_HOLDER_SIZE);
+        tokens[i] = (char *)calloc(1, LEAF_VALUE_HOLDER_SIZE);
     }
 }
 
@@ -219,7 +219,7 @@ grep (char string[], int string_size, char pattern[]) {
 
     if (!string_size) return 0;
     
-    char *temp_buff = calloc(1, string_size);
+    char *temp_buff = (char *)calloc(1, string_size);
     
     memcpy(temp_buff, string, string_size);
     memset (string, 0, string_size);
@@ -274,7 +274,7 @@ string_fetch_integer(char *string, int string_size, int index) {
 
     if (!string_size) return 0;
 
-    char *temp_buff = calloc(1, string_size);
+    char *temp_buff = (char *)calloc(1, string_size);
     memcpy(temp_buff, string, string_size);
     
     token = strtok(temp_buff, " ");

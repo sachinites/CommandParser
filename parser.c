@@ -326,7 +326,7 @@ parse_input_cmd(char *input, unsigned int len, bool *is_repeat_cmd){
 
     else if (strncmp (tokens[0], "repeat" , strlen(tokens[0])) == 0) {
         parser_process_repeat_cmd(token_cnt == 1 ? 0 : tokens[1]);
-        *is_repeat_cmd = true;
+        if (is_repeat_cmd) *is_repeat_cmd = true;
     }   
 
     else if((strncmp(tokens[0], GOTO_ONE_LVL_UP_STRING, strlen(GOTO_ONE_LVL_UP_STRING)) == 0) && (token_cnt == 1))

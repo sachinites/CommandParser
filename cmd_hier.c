@@ -459,13 +459,13 @@ init_param(param_t *param,                               /* pointer to static pa
 
     int i = 0;
     if(param_type == CMD){
-        GET_PARAM_CMD(param) = calloc(1, sizeof(cmd_t));
+        GET_PARAM_CMD(param) = (cmd_t *)calloc(1, sizeof(cmd_t));
         param->param_type = CMD;
         strncpy(GET_CMD_NAME(param), cmd_name, MIN(CMD_NAME_SIZE, strlen(cmd_name)));
         GET_CMD_NAME(param)[CMD_NAME_SIZE -1] = '\0';
     }
     else if(param_type == LEAF){
-        GET_PARAM_LEAF(param) = calloc(1, sizeof(leaf_t));
+        GET_PARAM_LEAF(param) = (leaf_t *)calloc(1, sizeof(leaf_t));
         param->param_type = LEAF;
         GET_PARAM_LEAF(param)->leaf_type = leaf_type;
         param->cmd_type.leaf->user_validation_cb_fn = user_validation_cb_fn;
@@ -473,7 +473,7 @@ init_param(param_t *param,                               /* pointer to static pa
         GET_LEAF_ID(param)[LEAF_ID_SIZE -1] = '\0';
     }
     else if(param_type == NO_CMD){
-        GET_PARAM_CMD(param) = calloc(1, sizeof(cmd_t));
+        GET_PARAM_CMD(param) = (cmd_t *)calloc(1, sizeof(cmd_t));
         param->param_type = NO_CMD;
         strncpy(GET_CMD_NAME(param), NEGATE_CHARACTER, strlen(NEGATE_CHARACTER));
         GET_CMD_NAME(param)[CMD_NAME_SIZE -1] = '\0';
@@ -515,7 +515,7 @@ support_cmd_negation(param_t *param){
         return;
     }
 
-    param_t *no_param = calloc(1, sizeof(param_t));
+    param_t *no_param = (param_t *)calloc(1, sizeof(param_t));
     init_param(no_param, NO_CMD, NEGATE_CHARACTER, negate_callback, 0, INVALID, 0, "Command Negation");
    
     /*We cant leave the MODE_PARAM_INDEX empty, 
