@@ -1,4 +1,4 @@
-CC=gcc
+CC=g++
 CFLAGS=-g -Wall
 INCLUDES=-I .
 CLILIB=libcli.a
