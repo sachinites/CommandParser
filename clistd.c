@@ -365,9 +365,9 @@ supportsave_handler(param_t *param, ser_buff_t *b, op_mode enable_or_disable){
 
     switch(enable_or_disable){
         case CONFIG_ENABLE:
-            signal(SIGTERM, terminate_signal_handler);/*When process is killed*/
-            signal(SIGSEGV, terminate_signal_handler);/*When process access illegal memory*/
-            signal(SIGABRT, terminate_signal_handler);/*when process abort itself*/
+            //signal(SIGTERM, terminate_signal_handler);/*When process is killed*/
+            //signal(SIGSEGV, terminate_signal_handler);/*When process access illegal memory*/
+            //signal(SIGABRT, terminate_signal_handler);/*when process abort itself*/
             break;
         case CONFIG_DISABLE:
             signal(SIGTERM, SIG_DFL);/*When process is killed*/
