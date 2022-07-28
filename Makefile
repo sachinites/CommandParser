@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-g -Wall
 INCLUDES=-I .
 CLILIB=libcli.a
-TARGET:exe ${CLILIB} ${FMSLIB}
+TARGET:exe ${CLILIB}
 OBJ=cmd_hier.o parser.o serialize.o string_util.o clistd.o clicbext.o gluethread/glthread.o ut/utinfra/ut_parser.o
 exe:testapp.o ${CLILIB}
 	@echo "Building final executable"
@@ -51,6 +51,5 @@ install:
 
 uninstall:
 	rm -f /usr/local/lib/${CLILIB}
-	rm -f /usr/local/lib/${FSMLIB}
 	rm -f /usr/include/libcli.h
 	rm -f /usr/include/cmdtlv.h
