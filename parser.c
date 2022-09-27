@@ -106,6 +106,11 @@ find_matching_param(param_t **options, const char *cmd_name){
     printf("Choice [0-%d] : ? ", j-1);
     scanf("%d", &choice);
 
+    /*  Read \n and discard */
+    if((fgets((char *)cons_input_buffer, sizeof(cons_input_buffer)-1, stdin) == NULL)){
+        printf("error in reading from stdin\n");
+    }
+
     if(choice < 0 || choice > (j-1)){
         printf("\nInvalid Choice");
         return NULL;
