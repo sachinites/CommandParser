@@ -128,6 +128,7 @@ build_tlv_buffer(char **tokens,
 
     int i = 0; 
     param_t *parent = NULL;
+    param_t *curr_hook;
     param_t *param = get_cmd_tree_cursor();
     CMD_PARSE_STATUS status = COMPLETE;
     op_mode enable_or_disable = MODE_UNKNOWN; 
@@ -231,22 +232,30 @@ build_tlv_buffer(char **tokens,
             }
 
             else if(param == libcli_get_mode_param()){
-                
+               
+                curr_hook = get_current_branch_hook(parent);
+
+                if (curr_hook == libcli_get_config_hook() &&
+                        enable_or_disable != CONFIG_DISABLE)
+                    enable_or_disable = CONFIG_ENABLE;
+
+                else if (curr_hook != libcli_get_config_hook())
+                    enable_or_disable = OPERATIONAL;
+
                 memset(command_code_tlv.value, 0, LEAF_VALUE_HOLDER_SIZE);
                 sprintf(command_code_tlv.value, "%d", parent->CMDCODE);
                 /*Let us checkpoint the ser buffer before adding the commandcode, 
                  * because we would not want cmd code in subsequent comds in mode*/
                 mark_checkpoint_serialize_buffer(tlv_buff);
                 collect_tlv(tlv_buff, &command_code_tlv);
-                mode_enter_callback(parent, tlv_buff, 
-                    enable_or_disable == CONFIG_DISABLE ? CONFIG_DISABLE : CONFIG_ENABLE);
+                mode_enter_callback(parent, tlv_buff, enable_or_disable);
             }
 
             else if(param == libcli_get_cmd_expansion_param())
                 display_cmd_expansion_callback(parent, tlv_buff, MODE_UNKNOWN);
 
             else{
-                param_t *curr_hook = get_current_branch_hook(param);
+                curr_hook = get_current_branch_hook(param);
 
                 if(curr_hook == libcli_get_config_hook() &&
                         enable_or_disable != CONFIG_DISABLE)
