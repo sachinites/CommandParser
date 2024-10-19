@@ -8,6 +8,7 @@ static bitmap_t bm;
 
 #define CONFIG_BITMAP_INIT  1
 #define CONFIG_BITMAP_SETBIT 2
+#define CONFIG_BITMAP_UNSETBIT 3
 
 #define SHOW_BITMAP 1
 
@@ -69,6 +70,11 @@ bitmap_config_handler (param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_di
             }
             break;
 
+            case CONFIG_BITMAP_UNSETBIT:
+            {
+                bitmap_unset_bit_at(&bm, index);
+            }
+            break;
 
             default: ;
     }
@@ -113,6 +119,21 @@ main (int argc, char **argv) {
                 set_param_cmd_code(&index, CONFIG_BITMAP_SETBIT);
             }
         }
+
+        {
+            /* unsetbit <index>*/
+            static param_t unsetbit;
+            init_param(&unsetbit, CMD, "unsetbit", 0, 0, INVALID, 0, "unset bit at index");
+            libcli_register_param(&bitmap, &unsetbit);
+            {
+                static param_t index;
+                init_param(&index, LEAF, 0, bitmap_config_handler, 0, INT, "index", "index position in bitmap");
+                libcli_register_param(&unsetbit, &index);
+                set_param_cmd_code(&index, CONFIG_BITMAP_UNSETBIT);
+            }
+        }
+
+
     }
 
     /* Show commands */

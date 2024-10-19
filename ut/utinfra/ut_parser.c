@@ -33,8 +33,8 @@ static FILE *ut_log_file = NULL;
 static uint64_t int_store1, int_store2, int_store3;
 static struct timespec mq_wait_time;
 
-#define MAX_MESSAGES    2000
-#define MAX_MSG_SIZE       2048
+#define MAX_MESSAGES    1
+#define MAX_MSG_SIZE      2048
 #define QUEUE_PERMISSIONS   0660
 
 extern CMD_PARSE_STATUS
@@ -292,7 +292,7 @@ run_test_case(char *file_name, uint16_t tc_no) {
                     else if (ut_parser_debug) {
 
                         printf("Mq Data Recvd by UT Parser : \n");
-                        printf("%s", ut_parser_recv_buff);
+                        printf("%s\n", ut_parser_recv_buff);
                         rc += sprintf(buff, "Mq Data Recvd by UT Parser : \n");
                         fwrite(buff, 1, rc, ut_log_file);
                         fwrite(ut_parser_recv_buff, 1, ut_parser_recv_buff_data_size, ut_log_file);

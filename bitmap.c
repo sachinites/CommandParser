@@ -7,6 +7,7 @@
 void bitmap_init(bitmap_t *bitmap, uint16_t size) {
 
     assert(!(size % 32));
+    if (bitmap->bits) free(bitmap->bits);
     bitmap->bits = (uint32_t *)calloc(0, (size/8) * sizeof(uint8_t));
     bitmap->tsize = size;
     bitmap->next = 0;
