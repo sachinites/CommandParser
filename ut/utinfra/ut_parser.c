@@ -13,6 +13,7 @@
 #include <pthread.h>
 #include <mqueue.h>
 #include <errno.h>
+#include <stdarg.h>
 #include <semaphore.h>
 #include "../../gluethread/glthread.h"
 #include "../../css.h"
@@ -32,7 +33,7 @@ static FILE *ut_log_file = NULL;
 static uint64_t int_store1, int_store2, int_store3;
 static struct timespec mq_wait_time;
 
-#define MAX_MESSAGES    1
+#define MAX_MESSAGES    2000
 #define MAX_MSG_SIZE       2048
 #define QUEUE_PERMISSIONS   0660
 
@@ -44,7 +45,7 @@ ut_parser_init ( ) {
 
     struct mq_attr attr;
 
-    ut_log_file = fopen("CommandParser/ut/utinfra/ut_log_file.txt", "w");
+    ut_log_file = fopen("ut/utinfra/ut_log_file.txt", "w");
     assert(ut_log_file);
 
     attr.mq_flags = 0;
@@ -538,16 +539,39 @@ ut_test_handler (param_t *param,
     return 0;
 }
 
-void
-cli_out(unsigned char *buff, size_t buff_size) {
+#define OBUFFER_SIZE 1024
+
+extern int 
+cprintf (const char* format, ...) {
+
+    int i;
+    va_list args;
+    int msg_len;
+    tlv_struct_t *tlv;
+    bool patt_rc = false;
+    bool inc_exc_pattern_present = false;
+    char Obuffer[OBUFFER_SIZE];
+
+    va_start(args, format);
+    memset (Obuffer, 0, OBUFFER_SIZE);
+    vsnprintf((char *)Obuffer, OBUFFER_SIZE, format, args);
+    msg_len = strlen ((const char *)Obuffer);
+    va_end(args);
 
     if (!TC_RUNNING) {
-        printf("%s", buff);
+        printf ("%s", Obuffer);
     }
     else {
-        assert(buff_size < UT_PARSER_BUFF_MAX_SIZE);
-         if (mq_send(UT_PARSER_MSG_Q_FD, (char *)buff , (buff_size + 1), 0) == -1 ) {
+        struct timespec ts;
+        clock_gettime(CLOCK_REALTIME, &ts);
+        ts.tv_sec += 5;  // Wait for 5 seconds max
+        assert(msg_len< UT_PARSER_BUFF_MAX_SIZE);
+         if (mq_timedsend(UT_PARSER_MSG_Q_FD, (char *)Obuffer , (msg_len + 1), 0, &ts) == -1 ) {
             printf ("mq_send failed on FD %d, errno = %d\n", UT_PARSER_MSG_Q_FD, errno);
+            struct mq_attr attr;
+            mq_getattr(UT_PARSER_MSG_Q_FD, &attr);
+            printf("Max messages: %ld, Current messages: %ld\n", attr.mq_maxmsg, attr.mq_curmsgs);
          }
     }
+    return 0;
 }
