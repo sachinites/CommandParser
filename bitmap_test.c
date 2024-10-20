@@ -15,7 +15,6 @@ static bitmap_t bm;
 static int
 bitmap_show_handler (param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_disable){
 
-    tlv_struct_t *tlvptr;
     int cmdcode = EXTRACT_CMD_CODE(tlv_buf);
 
     switch (cmdcode) {

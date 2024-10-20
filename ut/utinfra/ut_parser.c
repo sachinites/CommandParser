@@ -296,6 +296,8 @@ run_test_case(char *file_name, uint16_t tc_no) {
                         rc += sprintf(buff, "Mq Data Recvd by UT Parser : \n");
                         fwrite(buff, 1, rc, ut_log_file);
                         fwrite(ut_parser_recv_buff, 1, ut_parser_recv_buff_data_size, ut_log_file);
+                        //fwrite(" ", 1, 1, ut_log_file);
+                        //memset(ut_parser_recv_buff, 0, sizeof(ut_parser_recv_buff));
                     }
                 }
                 fflush(ut_log_file);
@@ -544,12 +546,8 @@ ut_test_handler (param_t *param,
 extern int 
 cprintf (const char* format, ...) {
 
-    int i;
     va_list args;
     int msg_len;
-    tlv_struct_t *tlv;
-    bool patt_rc = false;
-    bool inc_exc_pattern_present = false;
     char Obuffer[OBUFFER_SIZE];
 
     va_start(args, format);
