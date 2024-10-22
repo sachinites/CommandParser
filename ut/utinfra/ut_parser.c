@@ -282,7 +282,7 @@ run_test_case(char *file_name, uint16_t tc_no) {
                                         &mq_wait_time)) == -1) {
 
                             printf ("Msg Q  Time out : No Data Recvd from Backend\n");
-                            rc += sprintf(buff, "Msg Q  Time out : No Data Recvd from Backend\n");
+                            rc = sprintf(buff, "Msg Q  Time out : No Data Recvd from Backend\n");
                             fwrite(buff, 1, rc, ut_log_file);
                             ut_parser_recv_buff_data_size = 0;
                             memset(ut_parser_recv_buff, 0, sizeof(ut_parser_recv_buff));
@@ -291,10 +291,13 @@ run_test_case(char *file_name, uint16_t tc_no) {
                     else if (ut_parser_debug) {
 
                         printf("Mq Data Recvd by UT Parser : \n");
-                        printf("%s", ut_parser_recv_buff);
-                        rc += sprintf(buff, "Mq Data Recvd by UT Parser : \n");
+                        printf("%s\n", ut_parser_recv_buff);
+                        rc = sprintf(buff, "Mq Data Recvd by UT Parser : \n");
                         fwrite(buff, 1, rc, ut_log_file);
-                        fwrite(ut_parser_recv_buff, 1, ut_parser_recv_buff_data_size, ut_log_file);
+                        fwrite(ut_parser_recv_buff, 1, ut_parser_recv_buff_data_size -1, ut_log_file);
+			fwrite("\n", 1, 1, ut_log_file);
+			ut_parser_recv_buff_data_size = 0;
+                        memset(ut_parser_recv_buff, 0, sizeof(ut_parser_recv_buff));
                     }
                 }
                 fflush(ut_log_file);
