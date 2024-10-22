@@ -36,7 +36,7 @@
 :CMD: config bitmap setbit 44
 :CMD: config bitmap setbit 54
 :CMD: config bitmap setbit 63
-:CMD: config bitmap unsetbit 13˝
+:CMD: config bitmap unsetbit 13
 :CMD: config bitmap unsetbit 15
 :CMD: config bitmap unsetbit 21
 :CMD: config bitmap unsetbit 41
