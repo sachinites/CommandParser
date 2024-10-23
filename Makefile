@@ -7,12 +7,15 @@ OBJ=cmd_hier.o parser.o serialize.o string_util.o clistd.o clicbext.o gluethread
 bitmap.o:bitmap.c
 	@echo "Building bitmap.o"
 	@ ${CC} ${CFLAGS} -c ${INCLUDES} bitmap.c -o bitmap.o
+bitmap_fake.o:bitmap_fake.c
+	@echo "Building bitmap_fake.o"
+	@ ${CC} ${CFLAGS} -c ${INCLUDES} bitmap_fake.c -o bitmap_fake.o
 bitmap_test.o:bitmap_test.c
 	@echo "Building bitmap_test.o"
 	@ ${CC} ${CFLAGS} -c ${INCLUDES} bitmap_test.c -o bitmap_test.o
-bitmap_test.exe:bitmap_test.o bitmap.o ${CLILIB}
+bitmap_test.exe:bitmap_test.o bitmap.o bitmap_fake.o ${CLILIB}
 	@echo "Building final executable bitmap_test.exe"
-	@ ${CC} ${CFLAGS} ${INCLUDES} bitmap_test.o bitmap.o -o bitmap_test.exe -L . -lcli -lpthread -lrt
+	@ ${CC} ${CFLAGS} ${INCLUDES} bitmap_test.o bitmap.o bitmap_fake.o -o bitmap_test.exe -L . -lcli -lpthread -lrt
 cmd_hier.o:cmd_hier.c
 	@echo "Building cmd_hier.o"
 	@ ${CC} ${CFLAGS} -c ${INCLUDES} cmd_hier.c -o cmd_hier.o

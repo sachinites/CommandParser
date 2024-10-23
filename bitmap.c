@@ -5,7 +5,7 @@
 #include "bitmap.h"
 
 void bitmap_init(bitmap_t *bitmap, uint16_t size) {
-
+    
     assert(!(size % 32));
     if (bitmap->bits) free(bitmap->bits);
     bitmap->bits = (uint32_t *)calloc(0, (size/8) * sizeof(uint8_t));
@@ -398,18 +398,23 @@ prefix32bit_match(uint32_t input, uint32_t prefix,
 	return false;
 }
 
+
 void
 uint32_bits_copy(uint32_t *src, uint32_t *dst,
                              uint8_t src_start_pos,
-                             uint8_t dst_start_pos, uint8_t count) {
-
+                             uint8_t dst_start_pos, 
+                             uint8_t count) {
+    
     *dst = 0;
-    *dst = *src;
-    *dst = (*dst) << src_start_pos;
-	*dst = (*dst) >> dst_start_pos;
-    *dst = *dst >> (32 - count - dst_start_pos );
-    *dst = *dst << (32 - count - dst_start_pos );
+    uint32_t src_temp = htonl (*src);
+    src_temp = src_temp >> (32 - (src_start_pos + count));
+    src_temp = src_temp << (32 - (src_start_pos + count));
+    src_temp = src_temp << src_start_pos;
+    *dst = src_temp;
+    *dst = *dst >> dst_start_pos;
+    *dst = htonl (*dst);
 }
+
 
 void
 uint32_bits_copy_preserve(uint32_t *src, 

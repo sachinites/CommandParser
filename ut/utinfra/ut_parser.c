@@ -296,9 +296,7 @@ run_test_case(char *file_name, uint16_t tc_no) {
                         rc = sprintf(buff, "Mq Data Recvd by UT Parser : \n");
                         fwrite(buff, 1, rc, ut_log_file);
                         fwrite(ut_parser_recv_buff, 1, ut_parser_recv_buff_data_size -1, ut_log_file);
-			fwrite("\n", 1, 1, ut_log_file);
-			ut_parser_recv_buff_data_size = 0;
-                        memset(ut_parser_recv_buff, 0, sizeof(ut_parser_recv_buff));
+			            fwrite("\n", 1, 1, ut_log_file);
                     }
                 }
                 fflush(ut_log_file);
