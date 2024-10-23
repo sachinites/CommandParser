@@ -51,59 +51,7 @@
 :TESTCASE-END:2
 
 
-
-
 :TESTCASE-BEGIN:3
-:DESC: Test case to test bitmap_generate_ones( )
-
-:PRINT: Test case to test bitmap_generate_ones( )
-
-:STEP:1
-:CMD: config bitmap 32
-:STEP:2
-:CMD: config bitmap generate-ones 10 13
-:STEP:3
-:CMD: show bitmap 
-:STEP:4
-:PATTERN-MATCH:00000000 00111100 00000000 00000000
-
-:STEP:5
-:CMD: config bitmap generate-ones 20 28
-:STEP:6
-:CMD: show bitmap 
-:STEP:7
-:PATTERN-MATCH:00000000 00000000 00001111 11111000
-
-:STEP:8
-:CMD: config bitmap generate-ones 0 30
-:STEP:9
-:CMD: show bitmap 
-:STEP:10
-:PATTERN-MATCH:11111111 11111111 11111111 11111110
-
-
-:STEP:11
-:CMD: config bitmap generate-ones 0 0
-:STEP:12
-:CMD: show bitmap 
-:STEP:13
-:PATTERN-MATCH:10000000 00000000 00000000 00000000
-
-
-:STEP:14
-:CMD: config bitmap generate-ones 31 31
-:STEP:15
-:CMD: show bitmap 
-:STEP:16
-:PATTERN-MATCH:00000000 00000000 00000000 00000001
-
-
-:TESTCASE-END:3
-
-
-
-
-:TESTCASE-BEGIN:4
 :DESC: Test case to test uint32_bits_copy(( )
 
 :PRINT: Test case to test uint32_bits_copy(( )
@@ -148,12 +96,60 @@
 :STEP:17
 :CMD: config bitmap 32
 :STEP:18
-:INFO: Binary number for 118279280 is 11100001 10011001 10001110 00000000
+:INFO: Binary number for 118279280 is 00000111 00001100 11001100 01110000
 :CMD: config bitmap copy 118279280 2 16 14
 :STEP:19
 :CMD: show bitmap 
 :STEP:20
-:PATTERN-MATCH:00000000 00000000 10000110 01100100
+:PATTERN-MATCH:00000000 00000000 00011100 00110000
+
+
+:TESTCASE-END:3
+
+
+:TESTCASE-BEGIN:4
+:DESC: Test case to test bitmap_generate_ones( )
+
+:PRINT: Test case to test bitmap_generate_ones( )
+
+:STEP:1
+:CMD: config bitmap 32
+:STEP:2
+:CMD: config bitmap generate-ones 10 13
+:STEP:3
+:CMD: show bitmap 
+:STEP:4
+:PATTERN-MATCH:00000000 00111100 00000000 00000000
+
+:STEP:5
+:CMD: config bitmap generate-ones 20 28
+:STEP:6
+:CMD: show bitmap 
+:STEP:7
+:PATTERN-MATCH:00000000 00000000 00001111 11111000
+
+:STEP:8
+:CMD: config bitmap generate-ones 0 30
+:STEP:9
+:CMD: show bitmap 
+:STEP:10
+:PATTERN-MATCH:11111111 11111111 11111111 11111110
+
+
+:STEP:11
+:CMD: config bitmap generate-ones 0 0
+:STEP:12
+:CMD: show bitmap 
+:STEP:13
+:PATTERN-MATCH:10000000 00000000 00000000 00000000
+
+
+:STEP:14
+:CMD: config bitmap generate-ones 31 31
+:STEP:15
+:CMD: show bitmap 
+:STEP:16
+:PATTERN-MATCH:00000000 00000000 00000000 00000001
 
 
 :TESTCASE-END:4

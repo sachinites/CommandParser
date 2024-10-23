@@ -28,7 +28,7 @@ static int UT_PARSER_MSG_Q_FD;
 static bool TC_RUNNING = false;
 static char ut_parser_recv_buff[UT_PARSER_BUFF_MAX_SIZE];
 static int ut_parser_recv_buff_data_size;
-static bool ut_parser_debug = false;
+static bool ut_parser_debug = true;
 static FILE *ut_log_file = NULL;
 static uint64_t int_store1, int_store2, int_store3;
 static struct timespec mq_wait_time;

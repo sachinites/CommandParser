@@ -103,11 +103,6 @@ uint32_bits_copy(uint32_t *src, uint32_t *dst,
                              uint8_t src_start_pos,
                              uint8_t dst_start_pos, uint8_t count);
 
-void
-uint32_bits_copy_preserve(uint32_t *src, uint32_t *dst, 
-                                            uint8_t src_start_pos, uint8_t dst_start_pos,
-                                            uint8_t count);
-
 bool
 uint32_bits_compare  (uint32_t bits1, uint32_t bits2, uint8_t count);
 

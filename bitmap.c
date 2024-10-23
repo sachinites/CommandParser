@@ -350,6 +350,7 @@ bitmap_print(bitmap_t *bitmap) {
     return obuff;
 }
 
+
 char *
 bitmap_prefix_print(bitmap_t *prefix, bitmap_t *mask, uint16_t count) {
 
@@ -398,7 +399,6 @@ prefix32bit_match(uint32_t input, uint32_t prefix,
 	return false;
 }
 
-
 void
 uint32_bits_copy(uint32_t *src, uint32_t *dst,
                              uint8_t src_start_pos,
@@ -415,21 +415,6 @@ uint32_bits_copy(uint32_t *src, uint32_t *dst,
     *dst = htonl (*dst);
 }
 
-
-void
-uint32_bits_copy_preserve(uint32_t *src, 
-                                            uint32_t *dst, 
-                                            uint8_t src_start_pos,
-                                            uint8_t dst_start_pos,
-                                            uint8_t count) {
-
-	uint32_t dst_old_mask = 
-        bits_generate_ones(dst_start_pos, dst_start_pos + count - 1);
-	dst_old_mask = ~dst_old_mask;
-	uint32_t old_dst = htonl(*dst) & dst_old_mask;
-	uint32_bits_copy(src, dst, src_start_pos, dst_start_pos, count);
-	*dst = htonl(htonl(*dst) | old_dst);
-}
 
 bool
 uint32_bits_compare (uint32_t bits1, uint32_t bits2, uint8_t count) {
