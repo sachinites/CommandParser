@@ -405,14 +405,12 @@ uint32_bits_copy(uint32_t *src, uint32_t *dst,
                              uint8_t dst_start_pos, 
                              uint8_t count) {
     
-    *dst = 0;
     uint32_t src_temp = htonl (*src);
     src_temp = src_temp >> (32 - (src_start_pos + count));
     src_temp = src_temp << (32 - (src_start_pos + count));
     src_temp = src_temp << src_start_pos;
-    *dst = src_temp;
-    *dst = *dst >> dst_start_pos;
-    *dst = htonl (*dst);
+    src_temp = src_temp >> dst_start_pos;
+    *dst = htonl (src_temp);
 }
 
 
