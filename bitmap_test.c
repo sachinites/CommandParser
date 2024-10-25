@@ -12,6 +12,7 @@ static bitmap_t bm;
 #define CONFIG_BITMAP_UNSETBIT 3
 #define CONFIG_UINT32_GEN_ONES 4
 #define CONFIG_UINT32_BITS_COPY   5
+#define CONFIG_UINT32_COMPARE 6
 
 #define SHOW_BITMAP 1
 
@@ -46,6 +47,8 @@ bitmap_config_handler (param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_di
     uint8_t st_offset;
     uint8_t end_offset;
     tlv_struct_t *tlvptr;
+    uint32_t uint32_num1;
+    uint32_t uint32_num2;
 
     int cmdcode = EXTRACT_CMD_CODE(tlv_buf);
 
@@ -62,7 +65,11 @@ bitmap_config_handler (param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_di
         else if (parser_match_leaf_id(tlvptr->leaf_id, "uint32-num"))    
             num = atoi(tlvptr->value);             
         else if (parser_match_leaf_id(tlvptr->leaf_id, "count"))    
-            count = atoi(tlvptr->value);                          
+            count = atoi(tlvptr->value);                  
+        else if (parser_match_leaf_id(tlvptr->leaf_id, "uint32-num1"))    
+            uint32_num1 = atoi(tlvptr->value);        
+        else if (parser_match_leaf_id(tlvptr->leaf_id, "uint32-num2"))    
+            uint32_num2 = atoi(tlvptr->value);                            
     }
     TLV_LOOP_END;
 
@@ -112,6 +119,23 @@ bitmap_config_handler (param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_di
                 memcpy (bm.bits, &dst, 4);
             }
             break;
+
+
+            case CONFIG_UINT32_COMPARE:
+            {
+                bitmap_init(&bm, 32);
+                assert (count >= 0 && count <= 32);
+                if (count == 0) {
+                    break;
+                }
+                uint32_t mask = bits_generate_ones(0, count - 1);
+                if ((uint32_num1 & mask) == (uint32_num2 & mask)) {
+                    bitmap_set_bit_at(&bm, 0);
+                }
+            }
+            break;
+
+
 
             default: ;
     }
@@ -217,7 +241,36 @@ main (int argc, char **argv) {
         }
 
 
+        {
+            /* config bitmap compare uint32 <uint32_t> <uint32_t> <count>*/
+            static param_t compare;
+            init_param(&compare, CMD, "compare", 0, 0, INVALID, 0, "compare command");
+            libcli_register_param(&bitmap, &compare);
+            {
+                static param_t uint32;
+                init_param(&uint32, CMD, "uint32", 0, 0, INVALID, 0, "uint32 command");
+                libcli_register_param(&compare, &uint32);
+                {
+                    static param_t uint32_num1;
+                    init_param(&uint32_num1, LEAF, 0, 0, 0, INT, "uint32-num1", "uint32_t number");
+                    libcli_register_param(&uint32, &uint32_num1);
+                    {
+                        static param_t uint32_num2;
+                        init_param(&uint32_num2, LEAF, 0, 0, 0, INT, "uint32-num2", "uint32_t number");
+                        libcli_register_param(&uint32_num1, &uint32_num2);
+                        {
+                            static param_t count;
+                            init_param(&count, LEAF, 0, bitmap_config_handler, 0, INT, "count", "count[0-32]");
+                            libcli_register_param(&uint32_num2, &count);
+                            set_param_cmd_code(&count, CONFIG_UINT32_COMPARE);
+                        }
+                    }
+                }
+            }
+        }
+
     }
+
 
     /* Show commands */
     {
