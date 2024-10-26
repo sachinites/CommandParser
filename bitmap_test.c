@@ -13,6 +13,9 @@ static bitmap_t bm;
 #define CONFIG_UINT32_GEN_ONES 4
 #define CONFIG_UINT32_BITS_COPY   5
 #define CONFIG_UINT32_COMPARE 6
+#define CONFIG_BITMAP_COPY 7
+#define CONFIG_BITMAP_LSHIFT 8
+#define CONFIG_BITMAP_RSHIFT 9
 
 #define SHOW_BITMAP 1
 
@@ -49,6 +52,7 @@ bitmap_config_handler (param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_di
     tlv_struct_t *tlvptr;
     uint32_t uint32_num1;
     uint32_t uint32_num2;
+    uint32_t uint32_num3;
 
     int cmdcode = EXTRACT_CMD_CODE(tlv_buf);
 
@@ -69,7 +73,9 @@ bitmap_config_handler (param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_di
         else if (parser_match_leaf_id(tlvptr->leaf_id, "uint32-num1"))    
             uint32_num1 = atoi(tlvptr->value);        
         else if (parser_match_leaf_id(tlvptr->leaf_id, "uint32-num2"))    
-            uint32_num2 = atoi(tlvptr->value);                            
+            uint32_num2 = atoi(tlvptr->value);           
+        else if (parser_match_leaf_id(tlvptr->leaf_id, "uint32-num3"))    
+            uint32_num3 = atoi(tlvptr->value);                                   
     }
     TLV_LOOP_END;
 
@@ -115,7 +121,6 @@ bitmap_config_handler (param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_di
                 num = htonl(num);
                 uint32_t dst = 0;
                 uint32_bits_copy (&num, &dst, st_offset, end_offset, count);
-                bitmap_init(&bm, 32);
                 memcpy (bm.bits, &dst, 4);
             }
             break;
@@ -123,7 +128,6 @@ bitmap_config_handler (param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_di
 
             case CONFIG_UINT32_COMPARE:
             {
-                bitmap_init(&bm, 32);
                 assert (count >= 0 && count <= 32);
                 if (count == 0) {
                     break;
@@ -132,6 +136,33 @@ bitmap_config_handler (param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_di
                 if ((uint32_num1 & mask) == (uint32_num2 & mask)) {
                     bitmap_set_bit_at(&bm, 0);
                 }
+            }
+            break;
+
+            case CONFIG_BITMAP_COPY:
+            {
+                bitmap_t src = {0};
+                bitmap_init(&src, 96);
+                uint32_t temp = htonl (uint32_num1);
+                memcpy (src.bits, &temp, 4);
+                temp = htonl (uint32_num2);
+                memcpy (src.bits + 1, &temp, 4);
+                temp = htonl (uint32_num3);
+                memcpy (src.bits + 2, &temp, 4);
+                bitmap_copy(&src, &bm, st_offset, count);
+                bitmap_free_internal(&src);
+            }
+            break;
+
+            case CONFIG_BITMAP_LSHIFT:
+            {
+                bitmap_lshift(&bm, count);
+            }
+            break;
+
+            case CONFIG_BITMAP_RSHIFT:
+            {
+                bitmap_rshift(&bm, count);
             }
             break;
 
@@ -187,14 +218,14 @@ main (int argc, char **argv) {
         }
 
         {
-            /* copy <MV> <start-offset> <end-offset> <count>*/
-            static param_t copy;
-            init_param(&copy, CMD, "copy", 0, 0, INVALID, 0, "copy command");
-            libcli_register_param(&bitmap, &copy);
+            /* mv-copy <MV> <start-offset> <end-offset> <count>*/
+            static param_t mv_copy;
+            init_param(&mv_copy, CMD, "mv-copy", 0, 0, INVALID, 0, "memory value copy command");
+            libcli_register_param(&bitmap, &mv_copy);
             {
                 static param_t mv;
                 init_param(&mv, LEAF, 0, 0, 0, INT, "uint32-num", "uint32_t number");
-                libcli_register_param(&copy, &mv);
+                libcli_register_param(&mv_copy, &mv);
                 {
                     static param_t start_offset;
                     init_param(&start_offset, LEAF, 0, 0, 0, INT, "st-offset", "start-offset[0-31]");
@@ -268,6 +299,67 @@ main (int argc, char **argv) {
                 }
             }
         }
+
+        {
+            /* config bitmap bm-copy <uint32_t> <uint32_t> <uint32_t> <start_index> <count>*/
+            static param_t bm_copy;
+            init_param(&bm_copy, CMD, "bm-copy", 0, 0, INVALID, 0, "bitmap copy command");
+            libcli_register_param(&bitmap, &bm_copy);
+            {
+                static param_t uint32_num1;
+                init_param(&uint32_num1, LEAF, 0, 0, 0, INT, "uint32-num1", "uint32_t number");
+                libcli_register_param(&bm_copy, &uint32_num1);
+                {
+                    static param_t uint32_num2;
+                    init_param(&uint32_num2, LEAF, 0, 0, 0, INT, "uint32-num2", "uint32_t number");
+                    libcli_register_param(&uint32_num1, &uint32_num2);
+                    {
+                        static param_t uint32_num3;
+                        init_param(&uint32_num3, LEAF, 0, 0, 0, INT, "uint32-num3", "uint32_t number");
+                        libcli_register_param(&uint32_num2, &uint32_num3);
+                        {
+                            static param_t start_offset;
+                            init_param(&start_offset, LEAF, 0, 0, 0, INT, "st-offset", "start index");
+                            libcli_register_param(&uint32_num3, &start_offset);
+                            {
+                                static param_t count;
+                                init_param(&count, LEAF, 0, bitmap_config_handler, 0, INT, "count", "Number of bits to copy");
+                                libcli_register_param(&start_offset, &count);
+                                set_param_cmd_code(&count, CONFIG_BITMAP_COPY);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        {
+            /* config bitmap left-shift <count>*/
+            static param_t lshift;
+            init_param(&lshift, CMD, "left-shift", 0, 0, INVALID, 0, "left shift command");
+            libcli_register_param(&bitmap, &lshift);
+            {
+                static param_t count;
+                init_param(&count, LEAF, 0, bitmap_config_handler, 0, INT, "count", "Number of bits to shift");
+                libcli_register_param(&lshift, &count);
+                set_param_cmd_code(&count, CONFIG_BITMAP_LSHIFT);
+            }
+        }
+
+        {
+            /* config bitmap right-shift <count>*/
+            static param_t rshift;
+            init_param(&rshift, CMD, "right-shift", 0, 0, INVALID, 0, "right shift command");
+            libcli_register_param(&bitmap, &rshift);
+            {
+                static param_t count;
+                init_param(&count, LEAF, 0, bitmap_config_handler, 0, INT, "count", "Number of bits to shift");
+                libcli_register_param(&rshift, &count);
+                set_param_cmd_code(&count, CONFIG_BITMAP_RSHIFT);
+            }
+        }
+
 
     }
 

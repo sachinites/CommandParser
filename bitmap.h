@@ -28,6 +28,7 @@ bit_type_t bitmap_effective_bit_at(bitmap_t *prefix, bitmap_t *mask, uint16_t po
 void bitmap_set_bit_at(bitmap_t *bitmap, uint16_t index) ;
 void bitmap_unset_bit_at(bitmap_t *bitmap, uint16_t index) ;
 void bitmap_inverse(bitmap_t *bitmap, uint16_t count);
+void bitmap_copy (bitmap_t *src, bitmap_t *dst, uint16_t start_index, uint16_t count);
 
 void
 bitmap_slow_copy(bitmap_t *src, 
