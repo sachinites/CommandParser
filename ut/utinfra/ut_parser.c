@@ -290,13 +290,12 @@ run_test_case(char *file_name, uint16_t tc_no) {
                     }
 
                     else if (ut_parser_debug) {
-
-                        printf("Mq Data Recvd by UT Parser : \n");
-                        printf("%s\n", ut_parser_recv_buff);
-                        rc = sprintf(buff, "Mq Data Recvd by UT Parser : \n");
+                        printf("Observed Output : |%s|\n", ut_parser_recv_buff);
+                        rc = sprintf(buff, "Observed Output : |");
                         fwrite(buff, 1, rc, ut_log_file);
-                        fwrite(ut_parser_recv_buff, 1, ut_parser_recv_buff_data_size -1, ut_log_file);
-			            fwrite("\n", 1, 1, ut_log_file);
+                        fwrite(ut_parser_recv_buff, 1, ut_parser_recv_buff_data_size - 1, ut_log_file);
+                        rc = sprintf(buff, "|\n");
+                        fwrite("\n", 1, 1, ut_log_file);
                     }
                 }
                 fflush(ut_log_file);
@@ -318,8 +317,8 @@ run_test_case(char *file_name, uint16_t tc_no) {
                     rc1 += sprintf(pattern + rc1, ":%s", token);
                 }
               
-                printf("pattern to be matched : |%s|\n", pattern);
-                rc = sprintf(buff, "pattern to be matched : |");
+                printf("Expected Output : |%s|\n", pattern);
+                rc = sprintf(buff, "Expected Output : |");
                 fwrite(buff, 1, rc, ut_log_file);
                 fwrite(pattern, 1, rc1, ut_log_file);
                 rc = sprintf(buff, "|\n");

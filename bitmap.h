@@ -27,32 +27,12 @@ bool bitmap_at(bitmap_t *bitmap, uint16_t index);
 bit_type_t bitmap_effective_bit_at(bitmap_t *prefix, bitmap_t *mask, uint16_t pos);
 void bitmap_set_bit_at(bitmap_t *bitmap, uint16_t index) ;
 void bitmap_unset_bit_at(bitmap_t *bitmap, uint16_t index) ;
-void bitmap_inverse(bitmap_t *bitmap, uint16_t count);
 void bitmap_copy (bitmap_t *src, bitmap_t *dst, uint16_t start_index, uint16_t count);
 
-void
-bitmap_slow_copy(bitmap_t *src, 
-                      bitmap_t *dst,
-                      uint16_t src_start_offset,
-                      uint16_t dst_start_offset,
-                      uint16_t count);
-
 bool
-bitmap_slow_compare(bitmap_t *src, 
-                      bitmap_t *dst,
-                      uint16_t src_start_offset,
-                      uint16_t dst_start_offset,
-                      uint16_t count);
-
-bool
-bitmap_fast_compare(bitmap_t *src, 
-                              bitmap_t *dst,
-                              uint16_t count);
-
-void
-bitmap_fast_copy(bitmap_t *src, 
-                              bitmap_t *dst,
-                              uint16_t count);
+bitmap_compare(bitmap_t *src, 
+                            bitmap_t *dst,
+                            uint16_t count);
 
 bool 
 bitmap_prefix_match(bitmap_t *input, 

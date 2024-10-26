@@ -448,16 +448,15 @@ bitmap_copy (bitmap_t *src,
     uint16_t start_block = start_index / 32;
 
     /* Find the 32bit block which encapsulates the start-index + count (inclusive) */
-    uint16_t end_block = (start_index + count) / 32;
+    uint16_t end_block = (start_index + count -1 ) / 32;
 
     /* Copy all 32-bit blocks from src to dsr bitmap, starting from 0th block in dst-bitmap*/
     for (i = start_block, j = 0; i <= end_block; i++, j++)
         *(dst->bits + j) = *(src->bits + i);
 
-
     /* Handle Right Residual bits */
-    uint16_t right_residue = 31 - ((start_index + count )% 32);
-    uint32_t *dst_end_block = dst->bits + (end_block - start_block);
+    uint16_t right_residue = 31 - ((start_index + count - 1) % 32);
+    uint32_t *dst_end_block = dst->bits + end_block - start_block;
 
     if (right_residue) {
         mask = bits_generate_ones(0, (32 - right_residue) - 1);
@@ -468,6 +467,8 @@ bitmap_copy (bitmap_t *src,
 
     /* Handle left residual bits */
     uint16_t left_residue = start_index % 32;
+    if (!left_residue) return;
+
     uint16_t orig_size = dst->tsize;
 
     /*This is done to avoid unnecessary bit movements during lshift*/

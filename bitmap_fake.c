@@ -64,28 +64,6 @@ bitmap_prefix_apply_mask(bitmap_t *prefix, bitmap_t *mask, uint16_t count) {
 }
 
 void __attribute__((weak))
-bitmap_inverse(bitmap_t *bitmap, uint16_t count) {
-
-}
-
-void __attribute__((weak))
-bitmap_slow_copy(bitmap_t *src, 
-                      bitmap_t *dst,
-                      uint16_t src_start_offset,
-                      uint16_t dst_start_offset,
-                      uint16_t count) {
-
-}
-
-void __attribute__((weak))
-bitmap_fast_copy(bitmap_t *src, 
-                              bitmap_t *dst,
-                              uint16_t count) {
-
-
-}
-
-void __attribute__((weak))
 bitmap_lshift(bitmap_t *bitmap, uint16_t count) {
 
 }
@@ -99,17 +77,7 @@ bitmap_rshift(bitmap_t *bitmap, uint16_t count) {
 }
 
 bool __attribute__((weak))
-bitmap_slow_compare(bitmap_t *src, 
-                      bitmap_t *dst,
-                      uint16_t src_start_offset,
-                      uint16_t dst_start_offset,
-                      uint16_t count) {
-
-    return true;
-}
-
-bool __attribute__((weak))
-bitmap_fast_compare(bitmap_t *src, 
+bitmap_compare(bitmap_t *src, 
                                     bitmap_t *dst,
                                     uint16_t count) {
 
@@ -172,4 +140,12 @@ bits_generate_ones(uint8_t start_offset, uint8_t end_offset) {
     return 0;
 }
 
+void __attribute__((weak))
+bitmap_copy (bitmap_t *src, 
+                        bitmap_t *dst, 
+                        uint16_t start_index, 
+                        uint16_t count)  {
+
+
+}
 
