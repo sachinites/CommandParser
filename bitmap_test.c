@@ -16,6 +16,8 @@ static bitmap_t bm;
 #define CONFIG_BITMAP_COPY 7
 #define CONFIG_BITMAP_LSHIFT 8
 #define CONFIG_BITMAP_RSHIFT 9
+#define CONFIG_BITMAP_COMPARE 10
+#define CONFIG_BITMAP_GET_EFF_BIT 11
 
 #define SHOW_BITMAP 1
 
@@ -53,6 +55,9 @@ bitmap_config_handler (param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_di
     uint32_t uint32_num1;
     uint32_t uint32_num2;
     uint32_t uint32_num3;
+    uint32_t uint32_num4;
+    uint32_t uint32_num5;
+    uint32_t uint32_num6;    
 
     int cmdcode = EXTRACT_CMD_CODE(tlv_buf);
 
@@ -75,7 +80,13 @@ bitmap_config_handler (param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_di
         else if (parser_match_leaf_id(tlvptr->leaf_id, "uint32-num2"))    
             uint32_num2 = atoi(tlvptr->value);           
         else if (parser_match_leaf_id(tlvptr->leaf_id, "uint32-num3"))    
-            uint32_num3 = atoi(tlvptr->value);                                   
+            uint32_num3 = atoi(tlvptr->value);                      
+        else if (parser_match_leaf_id(tlvptr->leaf_id, "uint32-num4"))    
+            uint32_num4 = atoi(tlvptr->value);        
+        else if (parser_match_leaf_id(tlvptr->leaf_id, "uint32-num5"))    
+            uint32_num5 = atoi(tlvptr->value);           
+        else if (parser_match_leaf_id(tlvptr->leaf_id, "uint32-num6"))    
+            uint32_num6 = atoi(tlvptr->value);                                   
     }
     TLV_LOOP_END;
 
@@ -166,7 +177,62 @@ bitmap_config_handler (param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_di
             }
             break;
 
+            case CONFIG_BITMAP_COMPARE:
+            {
+                bitmap_t prefix1 = {0};
+                bitmap_t prefix2 = {0};
+                bitmap_init(&prefix1, 96);
+                bitmap_init(&prefix2, 96);
+                uint32_t temp = htonl (uint32_num1);
+                memcpy (prefix1.bits, &temp, 4);
+                temp = htonl (uint32_num2);
+                memcpy (prefix1.bits + 1, &temp, 4);
+                temp = htonl (uint32_num3);
+                memcpy (prefix1.bits + 2, &temp, 4);
+                temp = htonl (uint32_num4);
+                memcpy (prefix2.bits, &temp, 4);
+                temp = htonl (uint32_num5);
+                memcpy (prefix2.bits + 1, &temp, 4);
+                temp = htonl (uint32_num6);
+                memcpy (prefix2.bits + 2, &temp, 4);
+                if (bitmap_compare(&prefix1, &prefix2, count)) {
+                    bitmap_set_bit_at(&bm, 0);
+                }
+                bitmap_free_internal(&prefix1);
+                bitmap_free_internal(&prefix2);
+            }
+            break;
 
+            case CONFIG_BITMAP_GET_EFF_BIT:
+            {
+                bitmap_t wc = {0};
+                bitmap_init(&wc, 64);
+                uint32_t temp = htonl (uint32_num1);
+                memcpy (bm.bits, &temp, 4);
+                temp = htonl (uint32_num2);
+                memcpy (bm.bits + 1, &temp, 4);
+                temp = htonl (uint32_num3);
+                memcpy (wc.bits, &temp, 4);
+                temp = htonl (uint32_num4);
+                memcpy (wc.bits + 1, &temp, 4);    
+                bit_type_t bit = bitmap_effective_bit_at(&bm, &wc, count);
+                bitmap_init (&bm, 32);
+                switch (bit) {
+                    case ZERO:
+                        bitmap_set_bit_at(&bm, 0);
+                        break;
+                    case ONE:
+                        bitmap_set_bit_at(&bm, 1);
+                        break;
+                    case DONT_CARE:
+                        bitmap_set_bit_at(&bm, 0);
+                        bitmap_set_bit_at(&bm, 1);
+                        break;
+                    default: ;
+                }
+                bitmap_free_internal(&wc);
+            }
+            break;
 
             default: ;
     }
@@ -273,6 +339,40 @@ main (int argc, char **argv) {
 
 
         {
+            /* eff-bit  <uint32_t> <uint32_t> <uint32_t> <uint32_t> <count>*/
+            static param_t eff_bit;
+            init_param(&eff_bit, CMD, "eff-bit", 0, 0, INVALID, 0, "effective bit command");
+            libcli_register_param(&bitmap, &eff_bit);
+            {
+                static param_t uint32_num1;
+                init_param(&uint32_num1, LEAF, 0, 0, 0, INT, "uint32-num1", "uint32_t number");
+                libcli_register_param(&eff_bit, &uint32_num1);
+                {
+                    static param_t uint32_num2;
+                    init_param(&uint32_num2, LEAF, 0, 0, 0, INT, "uint32-num2", "uint32_t number");
+                    libcli_register_param(&uint32_num1, &uint32_num2);
+                    {
+                        static param_t uint32_num3;
+                        init_param(&uint32_num3, LEAF, 0, 0, 0, INT, "uint32-num3", "uint32_t number");
+                        libcli_register_param(&uint32_num2, &uint32_num3);
+                        {
+                            static param_t uint32_num4;
+                            init_param(&uint32_num4, LEAF, 0, 0, 0, INT, "uint32-num4", "uint32_t number");
+                            libcli_register_param(&uint32_num3, &uint32_num4);
+                            {
+                                static param_t count;
+                                init_param(&count, LEAF, 0, bitmap_config_handler, 0, INT, "count", "count[0-32]");
+                                libcli_register_param(&uint32_num4, &count);
+                                set_param_cmd_code(&count, CONFIG_BITMAP_GET_EFF_BIT);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        {
             /* config bitmap compare uint32 <uint32_t> <uint32_t> <count>*/
             static param_t compare;
             init_param(&compare, CMD, "compare", 0, 0, INVALID, 0, "compare command");
@@ -326,6 +426,49 @@ main (int argc, char **argv) {
                                 init_param(&count, LEAF, 0, bitmap_config_handler, 0, INT, "count", "Number of bits to copy");
                                 libcli_register_param(&start_offset, &count);
                                 set_param_cmd_code(&count, CONFIG_BITMAP_COPY);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        {
+            /* config bitmap bm-compare <uint32_t> <uint32_t> <uint32_t> > <uint32_t> <uint32_t> <uint32_t> <count>*/
+            static param_t bm_compare;
+            init_param(&bm_compare, CMD, "bm-compare", 0, 0, INVALID, 0, "bitmap compare command");
+            libcli_register_param(&bitmap, &bm_compare);
+            {
+                static param_t uint32_num1;
+                init_param(&uint32_num1, LEAF, 0, 0, 0, INT, "uint32-num1", "uint32_t number");
+                libcli_register_param(&bm_compare, &uint32_num1);
+                {
+                    static param_t uint32_num2;
+                    init_param(&uint32_num2, LEAF, 0, 0, 0, INT, "uint32-num2", "uint32_t number");
+                    libcli_register_param(&uint32_num1, &uint32_num2);
+                    {
+                        static param_t uint32_num3;
+                        init_param(&uint32_num3, LEAF, 0, 0, 0, INT, "uint32-num3", "uint32_t number");
+                        libcli_register_param(&uint32_num2, &uint32_num3);
+                        {
+                            static param_t uint32_num4;
+                            init_param(&uint32_num4, LEAF, 0, 0, 0, INT, "uint32-num4", "uint32_t number");
+                            libcli_register_param(&uint32_num3, &uint32_num4);
+                            {
+                                static param_t uint32_num5;
+                                init_param(&uint32_num5, LEAF, 0, 0, 0, INT, "uint32-num5", "uint32_t number");
+                                libcli_register_param(&uint32_num4, &uint32_num5);
+                                {
+                                    static param_t uint32_num6;
+                                    init_param(&uint32_num6, LEAF, 0, 0, 0, INT, "uint32-num6", "uint32_t number");
+                                    libcli_register_param(&uint32_num5, &uint32_num6);
+                                    {
+                                        static param_t count;
+                                        init_param(&count, LEAF, 0, bitmap_config_handler, 0, INT, "count", "Number of bits to copy");
+                                        libcli_register_param(&uint32_num6, &count);
+                                        set_param_cmd_code(&count, CONFIG_BITMAP_COMPARE);
+                                    }
+                                }
                             }
                         }
                     }

@@ -232,58 +232,6 @@ bitmap_rshift(bitmap_t *bitmap, uint16_t count) {
     bitmap_rshift32(bitmap, N);
 }
 
-bool
-bitmap_slow_compare(bitmap_t *src, 
-                      bitmap_t *dst,
-                      uint16_t src_start_offset,
-                      uint16_t dst_start_offset,
-                      uint16_t count) {
-
-    uint16_t index;
-    bool bit;
-
-    ITERATE_BITMAP_BEGIN(src, src_start_offset, index, bit) {
-
-        if (bitmap_at(dst, dst_start_offset) == bit) {
-            dst_start_offset++;
-            count--;
-            if (count == 0) return true;
-            continue;
-        }
-        return false;
-    } ITERATE_BITMAP_END;
-    return true;
-}
-
-bool
-bitmap_fast_compare(bitmap_t *src, 
-                                    bitmap_t *dst,
-                                    uint16_t count) {
-
-    int n_blocks = count / 32;
-    int rem_bits = count % 32;
-
-    if (rem_bits) {
-        n_blocks++;
-    }
-
-    int i;
-    for (i = 0; i < n_blocks - 1; i++) {
-        if (*(dst->bits + i) == *(src->bits + i)) {
-            continue;
-        }
-        return false;
-    }
-
-    if (!rem_bits) {
-        if (*(dst->bits + i) == *(src->bits + i)) {
-            return true;
-        }
-        return false;
-    }
-
-    return uint32_bits_compare(htonl(*(src->bits + i)) , htonl(*(dst->bits + i)), rem_bits);
-}
 
 bool 
 bitmap_prefix_match(bitmap_t *input, 
@@ -413,11 +361,40 @@ uint32_bits_copy(uint32_t *src, uint32_t *dst,
     *dst = htonl (src_temp);
 }
 
+bool
+bitmap_compare(bitmap_t *src, 
+                            bitmap_t *dst,
+                            uint16_t count) {
+
+    int n_blocks = count / 32;
+    int rem_bits = count % 32;
+
+    if (rem_bits) {
+        n_blocks++;
+    }
+
+    int i;
+
+    for (i = 0; i < n_blocks - 1; i++) {
+        if (!uint32_bits_compare(htonl(*(src->bits + i)), 
+                                              htonl(*(dst->bits + i)), 32)) {
+            return false;
+        }
+    }
+
+    return uint32_bits_compare(htonl(*(src->bits + i)), 
+                                          htonl(*(dst->bits + i)), rem_bits);
+}
+
 
 bool
 uint32_bits_compare (uint32_t bits1, uint32_t bits2, uint8_t count) {
 
-	uint32_t unwanted_bits = bits_generate_ones(0, count - 1);
+    uint32_t unwanted_bits;
+    if (count == 0)
+        unwanted_bits = ~0;
+    else
+	    unwanted_bits = bits_generate_ones(0, count - 1);
 	return ((bits1 & unwanted_bits) == (bits2 & unwanted_bits));
 }
 
