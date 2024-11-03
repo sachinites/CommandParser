@@ -90,6 +90,9 @@ uint32_bits_compare  (uint32_t bits1, uint32_t bits2, uint8_t count);
 uint32_t
 bits_generate_ones(uint8_t start_offset, uint8_t end_offset);
 
+void 
+bitmap_reverse (bitmap_t *bitmap) ;
+
 static inline uint32_t 
 LSHIFT (uint32_t N, uint16_t n) {
  

@@ -39,8 +39,14 @@ bool bitmap_at(bitmap_t *bitmap, uint16_t index) {
 void
 bitmap_set_bit_at(bitmap_t *bitmap, uint16_t index) {
 
+    if (index >= bitmap->tsize) {
+        bitmap->bits = (uint32_t *)realloc(bitmap->bits, (bitmap->tsize + 32) / 8);
+        bitmap->tsize += 32;
+    }
+
     uint16_t n_blocks = index / 8;
     uint8_t bit_pos = index % 8;
+
     uint8_t *ptr = (uint8_t *)bitmap->bits + n_blocks;
     *ptr |=  (1 << (8 - bit_pos - 1));   
 }
@@ -49,6 +55,11 @@ bitmap_set_bit_at(bitmap_t *bitmap, uint16_t index) {
 void
 bitmap_unset_bit_at(bitmap_t *bitmap, uint16_t index) {
 
+    if (index >= bitmap->tsize) {
+        bitmap->bits = (uint32_t *)realloc(bitmap->bits, (bitmap->tsize + 32) / 8);
+        bitmap->tsize += 32;
+    }
+    
     uint16_t n_blocks = index / 8;
     uint8_t bit_pos = index % 8;
     uint8_t *ptr = (uint8_t *)bitmap->bits + n_blocks;
@@ -454,6 +465,11 @@ bitmap_copy (bitmap_t *src,
     dst->tsize = orig_size;
 }
 
+/* Reverse the bitmap until bitmap->next*/
+void 
+bitmap_reverse (bitmap_t *bitmap) {
+
+}
 
 
 #if 0
