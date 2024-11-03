@@ -48,6 +48,8 @@ void bitmap_rshift(bitmap_t *bitmap, uint16_t count);
 char *bitmap_print(bitmap_t *bitmap); 
 void bitmap_set(bitmap_t *bitmap, uint16_t start_offset, uint16_t end_offset, bool set);
 char *bitmap_prefix_print(bitmap_t *prefix, bitmap_t *mask, uint16_t count);
+void bitmap_reverse (bitmap_t *bitmap, uint16_t count) ;
+void bitmap_swap_bits (bitmap_t *bitmap, uint16_t pos1, uint16_t pos2);
 
 #define ITERATE_BITMAP_BEGIN(bitmap_ptr, start_index, _index, boolout) \
     { \
@@ -89,9 +91,6 @@ uint32_bits_compare  (uint32_t bits1, uint32_t bits2, uint8_t count);
 
 uint32_t
 bits_generate_ones(uint8_t start_offset, uint8_t end_offset);
-
-void 
-bitmap_reverse (bitmap_t *bitmap) ;
 
 static inline uint32_t 
 LSHIFT (uint32_t N, uint16_t n) {

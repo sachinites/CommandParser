@@ -50,7 +50,7 @@ GI_to_bitmap (char *gi, uint16_t n) {
         bitmap->next++;
     }
 
-    bitmap_reverse (bitmap);
+    bitmap_reverse (bitmap, bitmap->next);
     bitmap_rshift (bitmap, bitmap->tsize - bitmap->next);
     return bitmap;
 }

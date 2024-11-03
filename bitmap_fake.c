@@ -149,3 +149,12 @@ bitmap_copy (bitmap_t *src,
 
 }
 
+void __attribute__((weak))
+bitmap_reverse (bitmap_t *bitmap, uint16_t count) {
+
+}
+
+void __attribute__((weak))
+bitmap_swap_bits (bitmap_t *bitmap, uint16_t pos1, uint16_t pos2) {
+
+}

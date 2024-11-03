@@ -546,5 +546,61 @@
 :STEP:28
 :PATTERN-MATCH:01000000 00000000 00000000 00000000
 
-
 :TESTCASE-END:10
+
+Testcase 11 : uint32_apply_mask 
+Testcase 12 : bitmap_prefix_apply_mask
+
+
+:TESTCASE-BEGIN:13
+:DESC: Test case to test bitmap_reverse ( )
+
+:PRINT: Test case to test bitmap_reverse ( )
+
+:STEP:1
+:CMD: config bitmap 64
+:STEP:2
+:CMD: config bitmap setbit 7
+:CMD: config bitmap setbit 14
+:CMD: config bitmap setbit 22
+:CMD: config bitmap setbit 23
+:CMD: config bitmap setbit 29
+:CMD: config bitmap setbit 39
+:CMD: config bitmap setbit 46
+:CMD: config bitmap setbit 54
+:CMD: config bitmap setbit 55
+:CMD: config bitmap setbit 61
+:STEP:3
+:CMD:config bitmap reverse 64
+:STEP:4
+:CMD: show bitmap 
+:STEP:5
+:PATTERN-MATCH:00100000 11000000 01000000 10000000 00100000 11000000 01000000 10000000
+:STEP:6
+:CMD:config bitmap reverse 64
+:STEP:7
+:CMD: show bitmap 
+:STEP:8
+:PATTERN-MATCH:00000001 00000010 00000011 00000100 00000001 00000010 00000011 00000100
+:STEP:9
+:CMD:config bitmap reverse 14
+:STEP:10
+:CMD: show bitmap 
+:PATTERN-MATCH:00000010 00000010 00000011 00000100 00000001 00000010 00000011 00000100
+:STEP:11
+:CMD:config bitmap reverse 14
+:STEP:12
+:CMD: show bitmap 
+:PATTERN-MATCH:00000001 00000010 00000011 00000100 00000001 00000010 00000011 00000100
+:STEP:13
+:CMD:config bitmap reverse 11
+:STEP:14
+:CMD: show bitmap 
+:PATTERN-MATCH:00010000 00000010 00000011 00000100 00000001 00000010 00000011 00000100
+:STEP:15
+:CMD:config bitmap reverse 11
+:STEP:16
+:CMD: show bitmap 
+:PATTERN-MATCH:00000001 00000010 00000011 00000100 00000001 00000010 00000011 00000100
+
+:TESTCASE-END:13

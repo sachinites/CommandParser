@@ -467,8 +467,36 @@ bitmap_copy (bitmap_t *src,
 
 /* Reverse the bitmap until bitmap->next*/
 void 
-bitmap_reverse (bitmap_t *bitmap) {
+bitmap_reverse (bitmap_t *bitmap, uint16_t count) {
 
+    bool bit;
+    uint16_t index;
+    uint16_t len = ( count/2 ) - 1;
+
+    ITERATE_BITMAP_BEGIN(bitmap, 0, index, bit) {
+
+        bitmap_swap_bits (bitmap, index, count - index - 1);
+        if (index == len) return;
+
+    } ITERATE_BITMAP_END;
+
+}
+
+void 
+bitmap_swap_bits (bitmap_t *bitmap, uint16_t pos1, uint16_t pos2) {
+
+    if (pos1 == pos2) return;
+    uint8_t bool_pos1 = bitmap_at(bitmap, pos1);
+    uint8_t bool_pos2 = bitmap_at(bitmap, pos2);
+    if (bool_pos1 == bool_pos2) return;
+    if (bool_pos1)
+        bitmap_set_bit_at(bitmap, pos2);
+    else 
+        bitmap_unset_bit_at(bitmap, pos2);
+    if (bool_pos2)
+        bitmap_set_bit_at(bitmap, pos1);
+    else 
+        bitmap_unset_bit_at(bitmap, pos1);        
 }
 
 

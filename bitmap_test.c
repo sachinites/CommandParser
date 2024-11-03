@@ -18,6 +18,7 @@ static bitmap_t bm;
 #define CONFIG_BITMAP_RSHIFT 9
 #define CONFIG_BITMAP_COMPARE 10
 #define CONFIG_BITMAP_GET_EFF_BIT 11
+#define CONFIG_BITMAP_REVERSE   12
 
 #define SHOW_BITMAP 1
 
@@ -234,6 +235,12 @@ bitmap_config_handler (param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_di
             }
             break;
 
+            case CONFIG_BITMAP_REVERSE:
+            {
+                bitmap_reverse (&bm, count);
+            }
+            break;
+            
             default: ;
     }
 
@@ -334,6 +341,19 @@ main (int argc, char **argv) {
                 init_param(&index, LEAF, 0, bitmap_config_handler, 0, INT, "index", "index position in bitmap");
                 libcli_register_param(&unsetbit, &index);
                 set_param_cmd_code(&index, CONFIG_BITMAP_UNSETBIT);
+            }
+        }
+
+        {
+            /* reverse <count>*/
+            static param_t reverse;
+            init_param(&reverse, CMD, "reverse", 0, 0, INVALID, 0, "Reverse bits");
+            libcli_register_param(&bitmap, &reverse);
+            {
+                static param_t count;
+                init_param(&count, LEAF, 0, bitmap_config_handler, 0, INT, "count", "Number of bits to be reversed");
+                libcli_register_param(&reverse, &count);
+                set_param_cmd_code(&count, CONFIG_BITMAP_REVERSE);
             }
         }
 
