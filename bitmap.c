@@ -78,6 +78,8 @@ bitmap_prefix_apply_mask(bitmap_t *prefix, bitmap_t *mask, uint16_t count) {
     int n_blocks = count / 32;
     int rem_bits = count % 32;
 
+    if (!count) return; 
+    
     if (rem_bits) {
         n_blocks++;
     }

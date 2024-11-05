@@ -18,7 +18,8 @@ static bitmap_t bm;
 #define CONFIG_BITMAP_RSHIFT 9
 #define CONFIG_BITMAP_COMPARE 10
 #define CONFIG_BITMAP_GET_EFF_BIT 11
-#define CONFIG_BITMAP_REVERSE   12
+#define CONFIG_BITMAP_PREFIX_APPLY_MASK 12
+#define CONFIG_BITMAP_REVERSE   13
 
 #define SHOW_BITMAP 1
 
@@ -48,7 +49,7 @@ bitmap_config_handler (param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_di
 
     int index;
     int bm_size;
-    uint8_t count;
+    uint16_t count;
     uint32_t num;    
     uint8_t st_offset;
     uint8_t end_offset;
@@ -241,6 +242,19 @@ bitmap_config_handler (param_t *param, ser_buff_t *tlv_buf, op_mode enable_or_di
             }
             break;
             
+            case CONFIG_BITMAP_PREFIX_APPLY_MASK:
+            {
+                bitmap_t mask = {0};
+                bitmap_init (&mask, 64);
+                uint32_t temp = htonl (uint32_num1);
+                memcpy (mask.bits, &temp, 4);
+                temp = htonl (uint32_num2);
+                memcpy (mask.bits + 1, &temp, 4);
+                bitmap_prefix_apply_mask(&bm, &mask, count);
+                bitmap_free_internal(&mask);
+            }
+            break;
+
             default: ;
     }
 
@@ -452,6 +466,31 @@ main (int argc, char **argv) {
                 }
             }
         }
+
+        {
+            /* config bitmap apply-mask <uint32_t> <uint32_t> <count>*/
+            static param_t apply_mask;
+            init_param(&apply_mask, CMD, "apply-mask", 0, 0, INVALID, 0, "bitmap apply-mask command");
+            libcli_register_param(&bitmap, &apply_mask);
+            {
+                static param_t uint32_num1;
+                init_param(&uint32_num1, LEAF, 0, 0, 0, INT, "uint32-num1", "uint32_t number");
+                libcli_register_param(&apply_mask, &uint32_num1);
+                {
+                    static param_t uint32_num2;
+                    init_param(&uint32_num2, LEAF, 0, 0, 0, INT, "uint32-num2", "uint32_t number");
+                    libcli_register_param(&uint32_num1, &uint32_num2);
+                    {
+                        static param_t count;
+                        init_param(&count, LEAF, 0, bitmap_config_handler, 0, INT, "count", "Number of bits to copy");
+                        libcli_register_param(&uint32_num2, &count);
+                        set_param_cmd_code(&count, CONFIG_BITMAP_PREFIX_APPLY_MASK);
+                    }
+                }
+            }
+        }
+
+
 
         {
             /* config bitmap bm-compare <uint32_t> <uint32_t> <uint32_t> > <uint32_t> <uint32_t> <uint32_t> <count>*/

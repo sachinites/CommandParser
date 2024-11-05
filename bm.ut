@@ -549,7 +549,127 @@
 :TESTCASE-END:10
 
 Testcase 11 : uint32_apply_mask 
-Testcase 12 : bitmap_prefix_apply_mask
+
+
+
+
+:TESTCASE-BEGIN:12
+:DESC: Test case to test bitmap_prefix_apply_mask ( )
+
+:PRINT: Test case to test bitmap_prefix_apply_mask ( )
+
+:STEP:1
+:CMD: config bitmap 64
+:STEP:2
+:INFO: BM 00000001 00000010 00000011 00000100 00000001 00000010 00000011 00000100 
+:CMD: config bitmap setbit 7
+:CMD: config bitmap setbit 14
+:CMD: config bitmap setbit 22
+:CMD: config bitmap setbit 23
+:CMD: config bitmap setbit 29
+:CMD: config bitmap setbit 39
+:CMD: config bitmap setbit 46
+:CMD: config bitmap setbit 54
+:CMD: config bitmap setbit 55
+:CMD: config bitmap setbit 61
+:STEP:3
+:INFO: Mask 00000001 00000010 00000011 00000100 00000001 00000010 00000011 00000100
+:CMD: config bitmap apply-mask 16909060 16909060 64
+:STEP:4
+:CMD: show bitmap 
+:STEP:5
+:PATTERN-MATCH:00000001 00000010 00000011 00000100 00000001 00000010 00000011 00000100
+
+:STEP:6
+:CMD: config bitmap 64
+:STEP:7
+:CMD: config bitmap setbit 7
+:CMD: config bitmap setbit 14
+:CMD: config bitmap setbit 22
+:CMD: config bitmap setbit 23
+:CMD: config bitmap setbit 29
+:CMD: config bitmap setbit 39
+:CMD: config bitmap setbit 46
+:CMD: config bitmap setbit 54
+:CMD: config bitmap setbit 55
+:CMD: config bitmap setbit 61
+:STEP:8
+:INFO: Mask 00000001 00000010 00000011 00000100 01010101 10101001 10001111 00101001
+:CMD: config bitmap apply-mask 16909060 1437175593 56
+:STEP:9
+:CMD: show bitmap
+:STEP:10
+:PATTERN-MATCH:00000001 00000010 00000011 00000100 00000001 00000000 00000011 00000100
+
+:STEP:11
+:CMD: config bitmap 64
+:STEP:12
+:CMD: config bitmap setbit 7
+:CMD: config bitmap setbit 14
+:CMD: config bitmap setbit 22
+:CMD: config bitmap setbit 23
+:CMD: config bitmap setbit 29
+:CMD: config bitmap setbit 39
+:CMD: config bitmap setbit 46
+:CMD: config bitmap setbit 54
+:CMD: config bitmap setbit 55
+:CMD: config bitmap setbit 61
+:STEP:13
+:INFO: Mask 01010101 10101001 10001111 00101001 01010101 10101001 10001111 00101001
+:CMD: config bitmap apply-mask 1437175593 1437175593 56
+:STEP:14
+:CMD: show bitmap
+:STEP:15
+:PATTERN-MATCH:00000001 00000000 00000011 00000000 00000001 00000000 00000011 00000100
+
+:STEP:16
+:CMD: config bitmap 64
+:STEP:17
+:CMD: config bitmap setbit 7
+:CMD: config bitmap setbit 14
+:CMD: config bitmap setbit 22
+:CMD: config bitmap setbit 23
+:CMD: config bitmap setbit 29
+:CMD: config bitmap setbit 39
+:CMD: config bitmap setbit 46
+:CMD: config bitmap setbit 54
+:CMD: config bitmap setbit 55
+:CMD: config bitmap setbit 61
+:STEP:18
+:INFO: Mask 01010101 10101001 10001111 00101001 01010101 10101001 10001111 00101001
+:CMD: config bitmap apply-mask 1437175593 1437175593 0
+:STEP:19
+:CMD: show bitmap
+:STEP:20
+:PATTERN-MATCH:00000001 00000010 00000011 00000100 00000001 00000010 00000011 00000100
+:STEP:21
+:CMD: config bitmap apply-mask 1437175593 1437175593 64
+:STEP:22
+:CMD: show bitmap
+:STEP:23
+:PATTERN-MATCH:00000001 00000000 00000011 00000000 00000001 00000000 00000011 00000000
+:STEP:24
+:CMD: config bitmap apply-mask 0 1437175593 64
+:STEP:25
+:CMD: show bitmap
+:STEP:26
+:PATTERN-MATCH:00000000 00000000 00000000 00000000 00000001 00000000 00000011 00000000
+:STEP:27
+:CMD: config bitmap apply-mask 0 1437175593 55
+:STEP:28
+:CMD: show bitmap
+:STEP:29
+:PATTERN-MATCH:00000000 00000000 00000000 00000000 00000001 00000000 00000011 00000000
+:STEP:30
+:CMD: config bitmap apply-mask 0 0 64
+:STEP:31
+:CMD: show bitmap
+:STEP:32
+:PATTERN-MATCH:00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+
+
+:TESTCASE-END:12
+
 
 
 :TESTCASE-BEGIN:13
