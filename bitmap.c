@@ -79,7 +79,7 @@ bitmap_prefix_apply_mask(bitmap_t *prefix, bitmap_t *mask, uint16_t count) {
     int rem_bits = count % 32;
 
     if (!count) return; 
-    
+
     if (rem_bits) {
         n_blocks++;
     }
@@ -501,6 +501,16 @@ bitmap_swap_bits (bitmap_t *bitmap, uint16_t pos1, uint16_t pos2) {
         bitmap_unset_bit_at(bitmap, pos1);        
 }
 
+void 
+uint32_apply_mask (uint32_t *prefix,  uint32_t *mask,  uint8_t mask_len ) {
+
+    uint32_t prefix_rv = htonl (*prefix);
+    uint32_t mask_rv = htonl (*mask);
+    uint32_t mask2 = bits_generate_ones (0, mask_len - 1);
+    uint32_t res = prefix_rv & mask_rv & mask2;
+    res = htonl(res);
+    *prefix = res;
+}
 
 #if 0
 int

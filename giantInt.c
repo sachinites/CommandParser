@@ -2,6 +2,7 @@
 #include <memory.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <arpa/inet.h>
 #include "bitmap.h"
 
 static uint8_t 
@@ -181,20 +182,88 @@ bitmap_to_GI (bitmap_t *bitmap, uint16_t *nout) {
     return output;
 }
 
+static uint32_t
+Add_two_uint32_bitmaps  (uint32_t *bm1, 
+			 uint32_t *bm2,
+			 uint32_t carry,
+			 uint32_t *res_bm) {
+
+    uint32_t res = 0;
+    uint32_t bm1_rv = htonl (*bm1);
+    uint32_t bm2_rv = htonl (*bm2);
+    uint64_t result = bm1_rv + bm2_rv + carry;
+    if (result > UINT32_MAX) res = 1;
+    *res_bm = bm1_rv + bm2_rv + carry;
+    *res_bm = htonl (*res_bm);
+    return res;
+}
+
+
 
 char *
 GI_add (char *gi1, uint16_t n1, 
               char *gi2, uint16_t n2,
               uint16_t *nout ) {
 
+    char *GI_res_array;
+    bitmap_t *bm1 = GI_to_bitmap(gi1, n1);
+    bitmap_t *bm2 = GI_to_bitmap(gi2, n2);
 
-    return NULL;
+    
+    bitmap_t *smaller_bm = NULL;
+    uint16_t size_max = bm1->tsize;
+
+    if (bm1->tsize > bm2->tsize){
+	    smaller_bm = bm2;
+	    size_max = bm1->tsize ;
+    }
+    else if (bm1->tsize < bm2->tsize) {
+	    smaller_bm = bm1;
+	    size_max = bm2->tsize;
+    }
+   
+    uint16_t bits_expanded = 0;
+
+    if (smaller_bm) {
+
+	smaller_bm->bits = (uint32_t *)realloc (smaller_bm->bits, size_max/32);
+	bits_expanded = size_max - smaller_bm->tsize;
+	smaller_bm->tsize = size_max;
+    	bitmap_rshift (smaller_bm, bits_expanded);
+    }
+ 
+    int i;
+    uint32_t carry = 0;
+    uint16_t n_blocks = size_max/32;
+    bitmap_t result;
+
+    bitmap_init (&result, size_max);
+
+    for (i = n_blocks - 1; i > -1; i--) {
+
+	carry = Add_two_uint32_bitmaps(&bm1->bits[i], &bm2->bits[i], carry, &result.bits[i]);
+    }
+     
+    GI_res_array = bitmap_to_GI (&result, nout);
+
+    if (carry == 1) {
+       char *temp = GI_res_array;
+       GI_res_array = (char *)calloc (1, *nout + 1);
+       GI_res_array[0] = '1';
+       memcpy (GI_res_array + 1, temp, *nout);
+       free(temp);
+    }
+
+    bitmap_free(bm1);
+    bitmap_free(bm2);
+    bitmap_free_internal (&result);    
+    return GI_res_array;
 }
 
 char *
 GI_sub (char *gi1, uint16_t n1, 
-              char *gi2, uint16_t n2,
-              uint16_t *nout ) {
+        char *gi2, uint16_t n2,
+        uint16_t *nout ) {
 
     return NULL;
 }
@@ -208,11 +277,12 @@ GI_mul (char *gi1, uint16_t n1,
     return NULL;
 }
 
-#if 0
+#if 1
 /* Main fn to test */
 int
 main (int argc, char **argv) {
 
+#if 0
     char *gi1 = "123456789876543212345678987654321";
     bitmap_t *bm = GI_to_bitmap(gi1, strlen(gi1));
     printf ("%d %s\n", bm->next, bitmap_print(bm));
@@ -222,6 +292,12 @@ main (int argc, char **argv) {
     printf ("%d %s\n", n, gi2);
     free(gi2);
     bitmap_free(bm);
+#endif
+    char *gi1 = "123";
+    char *gi2 = "123";
+    uint16_t res_size;
+    char *res = GI_add(gi1, strlen (gi1), gi2, strlen (gi2), &res_size);
+    printf ("GI after Add = %s\n", res);
     return 0;
 }
 #endif
