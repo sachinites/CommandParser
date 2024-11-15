@@ -8,13 +8,14 @@ void bitmap_init(bitmap_t *bitmap, uint16_t size) {
     
     assert(!(size % 32));
     if (bitmap->bits) free(bitmap->bits);
-    bitmap->bits = (uint32_t *)calloc(0, (size/8) * sizeof(uint8_t));
+    bitmap->bits = (uint32_t *)calloc( (size/8) , sizeof(uint8_t));
     bitmap->tsize = size;
     bitmap->next = 0;
 }
 
 void bitmap_free_internal(bitmap_t *bitmap) {
     free(bitmap->bits);
+    bitmap->bits = NULL;
 }
 
 void bitmap_free(bitmap_t *bitmap) {
@@ -39,9 +40,14 @@ bool bitmap_at(bitmap_t *bitmap, uint16_t index) {
 void
 bitmap_set_bit_at(bitmap_t *bitmap, uint16_t index) {
 
-    if (index >= bitmap->tsize) {
-        bitmap->bits = (uint32_t *)realloc(bitmap->bits, (bitmap->tsize + 32) / 8);
+    uint16_t orig_size = bitmap->tsize;
+
+    while (index >= bitmap->tsize) {
         bitmap->tsize += 32;
+    }
+
+    if (orig_size != bitmap->tsize) {
+        bitmap->bits = (uint32_t *)realloc(bitmap->bits, (bitmap->tsize) / 8);
     }
 
     uint16_t n_blocks = index / 8;
@@ -55,9 +61,14 @@ bitmap_set_bit_at(bitmap_t *bitmap, uint16_t index) {
 void
 bitmap_unset_bit_at(bitmap_t *bitmap, uint16_t index) {
 
-    if (index >= bitmap->tsize) {
-        bitmap->bits = (uint32_t *)realloc(bitmap->bits, (bitmap->tsize + 32) / 8);
+    uint16_t orig_size = bitmap->tsize;
+
+    while (index >= bitmap->tsize) {
         bitmap->tsize += 32;
+    }
+
+    if (orig_size != bitmap->tsize) {
+        bitmap->bits = (uint32_t *)realloc(bitmap->bits, (bitmap->tsize) / 8);
     }
     
     uint16_t n_blocks = index / 8;
@@ -70,6 +81,16 @@ void
 bitmap_set(bitmap_t *bitmap, uint16_t start_offset, 
                             uint16_t end_offset, bool set) {
     
+}
+
+void 
+bitmap_expand (bitmap_t *bitmap) {
+
+    assert (bitmap->tsize % 32 == 0);
+    assert (bitmap->bits);
+    bitmap->bits = (uint32_t *) realloc (bitmap->bits , (bitmap->tsize + 32) / 8 );
+    bitmap->tsize += 32;
+    bitmap_rshift (bitmap, 32);
 }
 
 void
@@ -517,6 +538,7 @@ int
 main(int argc, char **argv) {
 
     bitmap_t bm;
+    bm.bits = NULL;
     bitmap_init(&bm, 64);
     bitmap_set_bit_at(&bm, 0);
     bitmap_set_bit_at(&bm, 1);
@@ -535,6 +557,7 @@ main(int argc, char **argv) {
     bitmap_set_bit_at(&bm, 61);
     bitmap_set_bit_at(&bm, 63);
     bitmap_t bm1;
+    bm1.bits = NULL;
     bitmap_init(&bm1, 64);
     bitmap_fast_copy(&bm, &bm1, 64);
     bitmap_print(&bm);

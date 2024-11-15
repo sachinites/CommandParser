@@ -53,6 +53,7 @@ void bitmap_set(bitmap_t *bitmap, uint16_t start_offset, uint16_t end_offset, bo
 char *bitmap_prefix_print(bitmap_t *prefix, bitmap_t *mask, uint16_t count);
 void bitmap_reverse (bitmap_t *bitmap, uint16_t count) ;
 void bitmap_swap_bits (bitmap_t *bitmap, uint16_t pos1, uint16_t pos2);
+void bitmap_expand (bitmap_t *bitmap);
 
 #define ITERATE_BITMAP_BEGIN(bitmap_ptr, start_index, _index, boolout) \
     { \
