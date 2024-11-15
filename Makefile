@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-g -Wall
 INCLUDES=-I .
 CLILIB=libcli.a
-TARGET:bitmap_test.exe ${CLILIB}
+TARGET:bitmap_test.exe giantInt_test.exe ${CLILIB}
 OBJ=cmd_hier.o parser.o serialize.o string_util.o clistd.o clicbext.o gluethread/glthread.o ut/utinfra/ut_parser.o
 bitmap.o:bitmap.c
 	@echo "Building bitmap.o"
@@ -19,9 +19,15 @@ giantInt_fake.o:giantInt_fake.c
 bitmap_test.o:bitmap_test.c
 	@echo "Building bitmap_test.o"
 	@ ${CC} ${CFLAGS} -c ${INCLUDES} bitmap_test.c -o bitmap_test.o
+giantInt_test.o:giantInt_test.c
+	@echo "Building giantInt_test.o"
+	@ ${CC} ${CFLAGS} -c ${INCLUDES} giantInt_test.c -o giantInt_test.o
 bitmap_test.exe:bitmap_test.o bitmap.o bitmap_fake.o giantInt.o giantInt_fake.o ${CLILIB}
 	@echo "Building final executable bitmap_test.exe"
 	@ ${CC} ${CFLAGS} ${INCLUDES} bitmap_test.o bitmap.o bitmap_fake.o giantInt.o giantInt_fake.o -o bitmap_test.exe -L . -lcli -lpthread -lrt
+giantInt_test.exe:giantInt_test.o bitmap.o giantInt_fake.o
+	@echo "Building final executable giantInt_test.exe"
+	@ ${CC} ${CFLAGS} ${INCLUDES} giantInt_test.o bitmap.o giantInt_fake.o -o giantInt_test.exe 
 cmd_hier.o:cmd_hier.c
 	@echo "Building cmd_hier.o"
 	@ ${CC} ${CFLAGS} -c ${INCLUDES} cmd_hier.c -o cmd_hier.o

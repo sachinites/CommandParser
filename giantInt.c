@@ -301,13 +301,6 @@ GI_add (char *gi1, uint16_t n1,
     return GI_res_array;
 }
 
-char *
-GI_sub (char *gi1, uint16_t n1, 
-        char *gi2, uint16_t n2,
-        uint16_t *nout ) {
-
-    return NULL;
-}
 
 char *
 GI_mul (char *gi1, uint16_t n1, 
@@ -316,34 +309,3 @@ GI_mul (char *gi1, uint16_t n1,
 
     return NULL;
 }
-
-
-/* Main fn to test */
-#if 1
-int
-main (int argc, char **argv) {
-
-#if 0
-    char *gi1 = "123456789123456789123456789";
-    bitmap_t *bm = GI_to_bitmap(gi1, strlen(gi1));
-    printf ("%d %s\n", bm->next, bitmap_print(bm));
-    bm->next = bm->tsize;
-    uint16_t n = 0;
-    char *gi2 = bitmap_to_GI(bm, &n);
-    printf ("%d %s\n", n, gi2);
-    free(gi2);
-    bitmap_free(bm);
-#elif 1
-    char *gi1 = "999999999999999999999999999999999999999999999999999";
-    char *gi2 =   "99999999999999999999999999999999999999999999999999";
-    uint16_t res_size;
-    char *res = GI_add(gi1, strlen (gi1), gi2, strlen (gi2), &res_size);
-    printf ("GI after Add = %s\n", res);
-    free(res);
-#else
-
-#endif
-    return 0;
-}
-
-#endif
